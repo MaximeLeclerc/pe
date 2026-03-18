@@ -1438,3 +1438,495 @@ Animations['wheel-spin'] = function(container, cfg) {
     });
     container._cleanup = function() { cancelAnimationFrame(animId); };
 };
+
+/* ===== LINE GRAPH — Interactive data graph for A-Level content ===== */
+Animations['line-graph'] = function(container, cfg) {
+    var datasets = cfg.datasets || [{label:'Data',points:[10,30,70,90,80,60],color:'#2563eb'}];
+    var xLabels = cfg.xLabels || ['0','1','2','3','4','5'];
+    var yLabel = cfg.yLabel || 'Value';
+    var xLabel = cfg.xLabel || 'Time';
+    var title = cfg.title || '';
+    var canvas = document.createElement('canvas');
+    canvas.width = 380; canvas.height = 230;
+    container.appendChild(canvas);
+    var ctx = canvas.getContext('2d');
+    var hovered = -1;
+    var hoveredDs = 0;
+    var info = document.createElement('div');
+    info.style.cssText = 'position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:12px;font-weight:500;color:#1e293b;';
+    container.appendChild(info);
+    if (title) info.textContent = title;
+
+    var padL = 45, padR = 15, padT = 20, padB = 35;
+    var gw = canvas.width - padL - padR, gh = canvas.height - padT - padB;
+
+    function getMaxVal() {
+        var m = 0;
+        datasets.forEach(function(ds) { ds.points.forEach(function(p) { if (p > m) m = p; }); });
+        return m || 100;
+    }
+
+    var animProgress = 0;
+    var animId;
+    function draw() {
+        animProgress = Math.min(1, animProgress + 0.03);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        var maxVal = getMaxVal();
+        // Axes
+        ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT + gh); ctx.lineTo(padL + gw, padT + gh); ctx.stroke();
+        // Y grid lines and labels
+        ctx.fillStyle = '#94a3b8'; ctx.font = '10px system-ui'; ctx.textAlign = 'right';
+        for (var g = 0; g <= 4; g++) {
+            var gy = padT + gh - (g / 4) * gh;
+            ctx.beginPath(); ctx.strokeStyle = '#f1f5f9'; ctx.moveTo(padL, gy); ctx.lineTo(padL + gw, gy); ctx.stroke();
+            ctx.fillText(Math.round(maxVal * g / 4), padL - 5, gy + 3);
+        }
+        // X labels
+        ctx.textAlign = 'center';
+        xLabels.forEach(function(xl, i) {
+            var px = padL + (i / (xLabels.length - 1)) * gw;
+            ctx.fillText(xl, px, padT + gh + 14);
+        });
+        // Axis labels
+        ctx.fillStyle = '#64748b'; ctx.font = '11px system-ui';
+        ctx.fillText(xLabel, padL + gw / 2, padT + gh + 30);
+        ctx.save(); ctx.translate(12, padT + gh / 2); ctx.rotate(-Math.PI / 2); ctx.textAlign = 'center';
+        ctx.fillText(yLabel, 0, 0); ctx.restore();
+
+        // Datasets
+        datasets.forEach(function(ds, dsIdx) {
+            var pts = ds.points;
+            var n = pts.length;
+            ctx.strokeStyle = ds.color || '#2563eb'; ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            for (var i = 0; i < n; i++) {
+                var px = padL + (i / (n - 1)) * gw;
+                var py = padT + gh - (pts[i] / maxVal) * gh;
+                var drawPx = padL + ((i / (n - 1)) * gw) * animProgress;
+                var drawPy = padT + gh - (pts[i] / maxVal) * gh * animProgress;
+                if (i === 0) ctx.moveTo(drawPx, drawPy); else ctx.lineTo(drawPx, drawPy);
+            }
+            ctx.stroke();
+            // Points
+            for (var i = 0; i < n; i++) {
+                var px = padL + ((i / (n - 1)) * gw) * animProgress;
+                var py = padT + gh - (pts[i] / maxVal) * gh * animProgress;
+                ctx.beginPath(); ctx.arc(px, py, (hovered === i && hoveredDs === dsIdx) ? 6 : 4, 0, Math.PI * 2);
+                ctx.fillStyle = (hovered === i && hoveredDs === dsIdx) ? ds.color : '#fff';
+                ctx.fill(); ctx.strokeStyle = ds.color; ctx.lineWidth = 2; ctx.stroke();
+            }
+        });
+        // Legend
+        if (datasets.length > 1) {
+            datasets.forEach(function(ds, i) {
+                var lx = padL + 8 + i * 110;
+                ctx.fillStyle = ds.color; ctx.fillRect(lx, padT - 14, 12, 10);
+                ctx.fillStyle = '#1e293b'; ctx.font = '10px system-ui'; ctx.textAlign = 'left';
+                ctx.fillText(ds.label, lx + 16, padT - 5);
+            });
+        }
+        if (animProgress < 1) animId = requestAnimationFrame(draw);
+    }
+    draw();
+
+    canvas.addEventListener('mousemove', function(e) {
+        var rect = canvas.getBoundingClientRect();
+        var mx = (e.clientX - rect.left) * (canvas.width / rect.width);
+        var my = (e.clientY - rect.top) * (canvas.height / rect.height);
+        hovered = -1;
+        var maxVal = getMaxVal();
+        datasets.forEach(function(ds, dsIdx) {
+            ds.points.forEach(function(p, i) {
+                var px = padL + (i / (ds.points.length - 1)) * gw;
+                var py = padT + gh - (p / maxVal) * gh;
+                if (Math.hypot(mx - px, my - py) < 12) { hovered = i; hoveredDs = dsIdx; }
+            });
+        });
+        if (hovered >= 0) {
+            var ds = datasets[hoveredDs];
+            info.textContent = ds.label + ' at ' + xLabels[hovered] + ': ' + ds.points[hovered];
+        } else {
+            info.textContent = title || 'Hover over data points for values';
+        }
+        animProgress = 1; draw();
+    });
+    canvas.addEventListener('click', function() { animProgress = 0; draw(); });
+    container._cleanup = function() { cancelAnimationFrame(animId); };
+};
+
+/* ===== FLOW DIAGRAM — For information processing models ===== */
+Animations['flow-diagram'] = function(container, cfg) {
+    var steps = cfg.steps || [{label:'Input',detail:'Sensory info'},{label:'Process',detail:'Decision making'},{label:'Output',detail:'Motor response'}];
+    var title = cfg.title || '';
+    var div = document.createElement('div');
+    div.style.cssText = 'width:100%;padding:8px;overflow-x:auto;';
+    container.appendChild(div);
+
+    var flow = document.createElement('div');
+    flow.style.cssText = 'display:flex;align-items:center;gap:4px;min-width:max-content;padding:10px 4px;';
+    div.appendChild(flow);
+    var infoEl = document.createElement('div');
+    infoEl.style.cssText = 'text-align:center;font-size:13px;color:#1e293b;padding:6px;font-weight:500;min-height:20px;';
+    if (title) infoEl.textContent = title;
+    div.appendChild(infoEl);
+
+    steps.forEach(function(s, i) {
+        var box = document.createElement('div');
+        box.style.cssText = 'padding:10px 14px;border:2px solid #2563eb;border-radius:8px;background:#eff6ff;cursor:pointer;font-size:12px;font-weight:600;color:#1e293b;text-align:center;min-width:80px;transition:all 0.2s;';
+        box.textContent = s.label;
+        box.addEventListener('click', function(e) {
+            e.stopPropagation();
+            flow.querySelectorAll('div').forEach(function(d) { if (d.style.border) d.style.borderColor = '#2563eb'; d.style.background = '#eff6ff'; });
+            box.style.borderColor = '#f59e0b'; box.style.background = '#fef3c7';
+            infoEl.innerHTML = '<strong>' + s.label + '</strong>: ' + s.detail;
+        });
+        box.addEventListener('mouseenter', function() { box.style.transform = 'scale(1.05)'; });
+        box.addEventListener('mouseleave', function() { box.style.transform = 'scale(1)'; });
+        flow.appendChild(box);
+
+        if (i < steps.length - 1) {
+            var arrow = document.createElement('div');
+            var isFeedback = s.feedback;
+            arrow.style.cssText = 'font-size:18px;color:' + (isFeedback ? '#f59e0b' : '#2563eb') + ';font-weight:700;';
+            arrow.textContent = isFeedback ? '↩' : '→';
+            flow.appendChild(arrow);
+        }
+    });
+    // Add feedback arrow if configured
+    if (cfg.feedbackLoop) {
+        var fb = document.createElement('div');
+        fb.style.cssText = 'font-size:18px;color:#f59e0b;font-weight:700;';
+        fb.textContent = ' ↩ ' + (cfg.feedbackLabel || 'Feedback');
+        flow.appendChild(fb);
+    }
+};
+
+/* ===== ENERGY SYSTEM — Animated ATP/energy pathway diagram ===== */
+Animations['energy-system'] = function(container, cfg) {
+    var systems = cfg.systems || [
+        {name:'ATP-PC', duration:'0-10s', power:100, color:'#ef4444'},
+        {name:'Anaerobic Glycolytic', duration:'10s-3min', power:70, color:'#f59e0b'},
+        {name:'Aerobic', duration:'3min+', power:40, color:'#22c55e'}
+    ];
+    var canvas = document.createElement('canvas');
+    canvas.width = 380; canvas.height = 200;
+    container.appendChild(canvas);
+    var ctx = canvas.getContext('2d');
+    var time = 0;
+    var info = document.createElement('div');
+    info.style.cssText = 'position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:12px;font-weight:500;color:#1e293b;';
+    info.textContent = cfg.title || 'Click to animate energy contribution over time';
+    container.appendChild(info);
+    var animId;
+    var running = false;
+
+    function draw() {
+        ctx.clearRect(0, 0, 380, 200);
+        var padL = 40, padB = 25, gw = 320, gh = 155;
+        // Axes
+        ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(padL, 10); ctx.lineTo(padL, 10 + gh); ctx.lineTo(padL + gw, 10 + gh); ctx.stroke();
+        ctx.fillStyle = '#64748b'; ctx.font = '10px system-ui';
+        ctx.textAlign = 'center'; ctx.fillText('Exercise Duration →', padL + gw / 2, 10 + gh + 18);
+        ctx.save(); ctx.translate(12, 10 + gh / 2); ctx.rotate(-Math.PI / 2); ctx.fillText('% ATP Contribution', 0, 0); ctx.restore();
+
+        // Draw energy curves
+        systems.forEach(function(sys, idx) {
+            ctx.beginPath(); ctx.strokeStyle = sys.color; ctx.lineWidth = 3;
+            for (var x = 0; x <= Math.min(time, gw); x++) {
+                var t = x / gw; // 0 to 1
+                var y;
+                if (idx === 0) y = Math.max(0, 100 * Math.exp(-t * 8)); // ATP-PC decays fast
+                else if (idx === 1) y = 70 * Math.exp(-Math.pow(t - 0.15, 2) / 0.02); // Glycolytic peaks mid
+                else y = Math.min(95, 95 * (1 - Math.exp(-t * 4))); // Aerobic rises
+                var px = padL + x;
+                var py = 10 + gh - (y / 100) * gh;
+                if (x === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+            }
+            ctx.stroke();
+        });
+        // Legend
+        systems.forEach(function(sys, i) {
+            ctx.fillStyle = sys.color; ctx.fillRect(padL + 5 + i * 115, 15, 10, 10);
+            ctx.fillStyle = '#1e293b'; ctx.font = '10px system-ui'; ctx.textAlign = 'left';
+            ctx.fillText(sys.name + ' (' + sys.duration + ')', padL + 18 + i * 115, 24);
+        });
+
+        if (running && time < gw) {
+            time += 2;
+            animId = requestAnimationFrame(draw);
+        }
+    }
+    draw();
+
+    container.addEventListener('click', function() {
+        if (time >= 320) { time = 0; running = false; draw(); }
+        else { running = true; draw(); }
+    });
+    container._cleanup = function() { cancelAnimationFrame(animId); };
+};
+
+/* ===== O2 DISSOCIATION CURVE — Interactive Bohr shift ===== */
+Animations['dissociation-curve'] = function(container, cfg) {
+    var canvas = document.createElement('canvas');
+    canvas.width = 380; canvas.height = 220;
+    container.appendChild(canvas);
+    var ctx = canvas.getContext('2d');
+    var bohrShift = 0; // 0 = normal, 1 = shifted right
+    var info = document.createElement('div');
+    info.style.cssText = 'position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:12px;font-weight:500;color:#1e293b;';
+    info.textContent = 'Click to toggle Bohr shift (increased CO₂/temp/acidity)';
+    container.appendChild(info);
+
+    function sigmoid(x, shift) { return 100 / (1 + Math.exp(-0.06 * (x - 35 - shift * 15))); }
+
+    function draw() {
+        ctx.clearRect(0, 0, 380, 220);
+        var padL = 45, padB = 30, gw = 310, gh = 165;
+        // Axes
+        ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(padL, 10); ctx.lineTo(padL, 10 + gh); ctx.lineTo(padL + gw, 10 + gh); ctx.stroke();
+        ctx.fillStyle = '#64748b'; ctx.font = '10px system-ui'; ctx.textAlign = 'center';
+        ctx.fillText('Partial Pressure of O₂ (mmHg)', padL + gw / 2, 10 + gh + 22);
+        ctx.save(); ctx.translate(12, 10 + gh / 2); ctx.rotate(-Math.PI / 2); ctx.fillText('% O₂ Saturation of Hb', 0, 0); ctx.restore();
+        // X labels
+        for (var xl = 0; xl <= 100; xl += 20) {
+            var px = padL + (xl / 100) * gw;
+            ctx.fillStyle = '#94a3b8'; ctx.font = '9px system-ui';
+            ctx.fillText(xl, px, 10 + gh + 12);
+        }
+        // Y labels
+        ctx.textAlign = 'right';
+        for (var yl = 0; yl <= 100; yl += 25) {
+            var py = 10 + gh - (yl / 100) * gh;
+            ctx.fillText(yl + '%', padL - 5, py + 3);
+        }
+
+        // Normal curve (always shown)
+        ctx.beginPath(); ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 2.5;
+        for (var x = 0; x <= 100; x++) {
+            var y = sigmoid(x, 0);
+            var px = padL + (x / 100) * gw;
+            var py = 10 + gh - (y / 100) * gh;
+            if (x === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+
+        // Shifted curve
+        if (bohrShift) {
+            ctx.beginPath(); ctx.strokeStyle = '#2563eb'; ctx.lineWidth = 2.5; ctx.setLineDash([6, 4]);
+            for (var x = 0; x <= 100; x++) {
+                var y = sigmoid(x, 1);
+                var px = padL + (x / 100) * gw;
+                var py = 10 + gh - (y / 100) * gh;
+                if (x === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+            }
+            ctx.stroke(); ctx.setLineDash([]);
+        }
+
+        // Legend
+        ctx.fillStyle = '#ef4444'; ctx.fillRect(padL + 5, 15, 12, 8);
+        ctx.fillStyle = '#1e293b'; ctx.font = '10px system-ui'; ctx.textAlign = 'left';
+        ctx.fillText('Normal', padL + 20, 23);
+        if (bohrShift) {
+            ctx.fillStyle = '#2563eb'; ctx.fillRect(padL + 80, 15, 12, 8);
+            ctx.fillStyle = '#1e293b'; ctx.fillText('Bohr Shift (↑CO₂, ↑Temp, ↑Acid)', padL + 95, 23);
+        }
+        // Arrow showing shift
+        if (bohrShift) {
+            ctx.fillStyle = '#2563eb'; ctx.font = '16px system-ui'; ctx.textAlign = 'center';
+            ctx.fillText('→', padL + gw * 0.45, 10 + gh * 0.45);
+        }
+    }
+    draw();
+    container.addEventListener('click', function() { bohrShift = bohrShift ? 0 : 1; draw(); });
+};
+
+/* ===== LUNG VOLUMES — Interactive spirometer trace ===== */
+Animations['lung-volumes'] = function(container, cfg) {
+    var canvas = document.createElement('canvas');
+    canvas.width = 380; canvas.height = 210;
+    container.appendChild(canvas);
+    var ctx = canvas.getContext('2d');
+    var mode = 0; // 0=rest, 1=exercise
+    var info = document.createElement('div');
+    info.style.cssText = 'position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:12px;font-weight:500;color:#1e293b;';
+    info.textContent = 'Click to toggle rest vs exercise breathing';
+    container.appendChild(info);
+    var t = 0;
+    var animId;
+
+    function draw() {
+        t += 0.02;
+        ctx.clearRect(0, 0, 380, 210);
+        var padL = 50, padB = 20, gw = 310, gh = 170;
+
+        // Y axis
+        ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(padL, 10); ctx.lineTo(padL, 10 + gh); ctx.lineTo(padL + gw, 10 + gh); ctx.stroke();
+        ctx.fillStyle = '#64748b'; ctx.font = '9px system-ui'; ctx.textAlign = 'right';
+
+        // Volume markers
+        var volumes = [{y:0.15, label:'TLC (6000ml)'}, {y:0.35, label:'IRV'}, {y:0.52, label:'TV (rest)'}, {y:0.6, label:'TV (base)'}, {y:0.75, label:'ERV'}, {y:0.92, label:'RV (1200ml)'}];
+        volumes.forEach(function(v) {
+            var py = 10 + v.y * gh;
+            ctx.fillStyle = '#94a3b8'; ctx.fillText(v.label, padL - 3, py + 3);
+            ctx.beginPath(); ctx.strokeStyle = '#f1f5f9'; ctx.moveTo(padL, py); ctx.lineTo(padL + gw, py); ctx.stroke();
+        });
+
+        // Spirometer trace
+        ctx.beginPath(); ctx.strokeStyle = '#2563eb'; ctx.lineWidth = 2.5;
+        var tidalAmp = mode === 0 ? 0.08 : 0.25;
+        var freq = mode === 0 ? 1 : 2.5;
+        var baseline = mode === 0 ? 0.56 : 0.48;
+        for (var x = 0; x <= gw; x++) {
+            var phase = (x / gw) * 10 + t * freq;
+            var breath = Math.sin(phase * Math.PI * 2) * tidalAmp;
+            // Add occasional deeper breath in exercise mode
+            if (mode === 1 && Math.sin(phase * 0.3) > 0.8) breath *= 1.3;
+            var y = baseline + breath;
+            var px = padL + x;
+            var py = 10 + y * gh;
+            if (x === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+
+        // Labels
+        ctx.fillStyle = '#1e293b'; ctx.font = '11px system-ui'; ctx.textAlign = 'left';
+        ctx.fillText(mode === 0 ? 'At Rest — TV ≈ 500ml' : 'During Exercise — TV ≈ 2500ml+', padL + 5, 22);
+        ctx.fillText('Minute Ventilation: ' + (mode === 0 ? '~6 L/min' : '~100+ L/min'), padL + 5, 36);
+
+        animId = requestAnimationFrame(draw);
+    }
+    draw();
+
+    container.addEventListener('click', function() { mode = mode ? 0 : 1; });
+    container._cleanup = function() { cancelAnimationFrame(animId); };
+};
+
+/* ===== CARDIAC CYCLE — Animated heart pumping with values ===== */
+Animations['cardiac-cycle'] = function(container, cfg) {
+    var canvas = document.createElement('canvas');
+    canvas.width = 360; canvas.height = 200;
+    container.appendChild(canvas);
+    var ctx = canvas.getContext('2d');
+    var trained = cfg.trained || false;
+    var info = document.createElement('div');
+    info.style.cssText = 'position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:12px;font-weight:500;color:#1e293b;';
+    info.textContent = 'Click to toggle trained vs untrained heart';
+    container.appendChild(info);
+    var t = 0;
+    var animId;
+
+    function draw() {
+        t += 0.02;
+        ctx.clearRect(0, 0, 360, 200);
+        var hr = trained ? 55 : 72;
+        var sv = trained ? 110 : 70;
+        var q = (hr * sv) / 1000;
+        var beat = Math.sin(t * hr / 10) > 0.7 ? 1.15 : 1;
+
+        // Heart shape
+        ctx.save(); ctx.translate(90, 85); ctx.scale(beat, beat);
+        ctx.beginPath(); ctx.moveTo(0, -10);
+        ctx.bezierCurveTo(-25, -40, -55, -15, -30, 15);
+        ctx.lineTo(0, 42); ctx.lineTo(30, 15);
+        ctx.bezierCurveTo(55, -15, 25, -40, 0, -10);
+        ctx.fillStyle = trained ? '#2563eb' : '#ef4444'; ctx.fill();
+        ctx.restore();
+
+        // Stats
+        ctx.fillStyle = '#1e293b'; ctx.font = '13px system-ui'; ctx.textAlign = 'left';
+        var x = 180, y = 30;
+        ctx.font = 'bold 14px system-ui';
+        ctx.fillText(trained ? 'Trained Athlete' : 'Untrained Individual', x, y);
+        ctx.font = '12px system-ui';
+        ctx.fillText('Heart Rate: ' + hr + ' bpm', x, y + 22);
+        ctx.fillText('Stroke Volume: ' + sv + ' ml', x, y + 40);
+        ctx.fillText('Cardiac Output: ' + q.toFixed(1) + ' L/min', x, y + 58);
+        ctx.fillText('Max HR: ~' + (trained ? '185' : '195') + ' bpm', x, y + 76);
+        ctx.fillText('Max Q: ~' + (trained ? '35' : '22') + ' L/min', x, y + 94);
+        ctx.fillStyle = '#64748b'; ctx.font = '11px system-ui';
+        ctx.fillText('Q = HR × SV (Starling\'s Law)', x, y + 118);
+
+        animId = requestAnimationFrame(draw);
+    }
+    draw();
+
+    container.addEventListener('click', function() { trained = !trained; });
+    container._cleanup = function() { cancelAnimationFrame(animId); };
+};
+
+/* ===== VASCULAR SHUNTING — Blood redistribution diagram ===== */
+Animations['vascular-shunt'] = function(container, cfg) {
+    var atRest = cfg.atRest || {muscles:15,organs:35,skin:10,brain:15,heart:5,other:20};
+    var exercise = cfg.exercise || {muscles:70,organs:5,skin:10,brain:5,heart:5,other:5};
+    var isExercise = false;
+    var div = document.createElement('div');
+    div.style.cssText = 'width:100%;padding:8px;';
+    container.appendChild(div);
+
+    function render() {
+        var data = isExercise ? exercise : atRest;
+        var entries = Object.keys(data).map(function(k) { return {name:k.charAt(0).toUpperCase()+k.slice(1), pct:data[k]}; });
+        var colors = ['#ef4444','#f59e0b','#ec4899','#2563eb','#8b5cf6','#64748b'];
+        div.innerHTML = '<div style="font-weight:700;font-size:14px;text-align:center;margin-bottom:8px;color:#1e293b;">' +
+            (isExercise ? 'During Exercise' : 'At Rest') + ' — Blood Distribution</div>';
+        var barDiv = document.createElement('div');
+        barDiv.style.cssText = 'display:flex;flex-direction:column;gap:6px;';
+        entries.forEach(function(e, i) {
+            var row = document.createElement('div');
+            row.style.cssText = 'display:flex;align-items:center;gap:8px;';
+            row.innerHTML = '<div style="width:70px;font-size:12px;text-align:right;font-weight:500;">' + e.name + '</div>' +
+                '<div style="flex:1;height:18px;background:#e2e8f0;border-radius:9px;overflow:hidden;">' +
+                '<div style="width:0%;height:100%;background:' + colors[i % colors.length] + ';border-radius:9px;transition:width 0.8s ease;font-size:10px;color:#fff;display:flex;align-items:center;padding-left:6px;font-weight:600;" class="vbar">' + e.pct + '%</div></div>';
+            barDiv.appendChild(row);
+        });
+        div.appendChild(barDiv);
+        var note = document.createElement('div');
+        note.style.cssText = 'text-align:center;font-size:12px;color:#64748b;margin-top:8px;';
+        note.textContent = isExercise ? 'Vasoconstriction in organs, vasodilation in muscles' : 'Click to see redistribution during exercise';
+        div.appendChild(note);
+        // Animate bars
+        setTimeout(function() {
+            var bars = div.querySelectorAll('.vbar');
+            entries.forEach(function(e, i) { bars[i].style.width = e.pct + '%'; });
+        }, 50);
+    }
+    render();
+    container.addEventListener('click', function() { isExercise = !isExercise; render(); });
+};
+
+/* ===== CONTINUUM SCALE — For skill classification ===== */
+Animations['continuum'] = function(container, cfg) {
+    var scales = cfg.scales || [{label:'Open — Closed', left:'Open', right:'Closed', value:50}];
+    var items = cfg.items || [];
+    var div = document.createElement('div');
+    div.style.cssText = 'width:100%;padding:12px;display:flex;flex-direction:column;gap:14px;';
+    container.appendChild(div);
+
+    scales.forEach(function(s) {
+        var row = document.createElement('div');
+        row.innerHTML = '<div style="font-size:13px;font-weight:600;color:#1e293b;margin-bottom:4px;">' + s.label + '</div>' +
+            '<div style="display:flex;align-items:center;gap:8px;">' +
+            '<span style="font-size:11px;color:#64748b;width:70px;text-align:right;">' + s.left + '</span>' +
+            '<div style="flex:1;height:8px;background:linear-gradient(to right,#2563eb,#e2e8f0,#ef4444);border-radius:4px;position:relative;">' +
+            '<div style="position:absolute;top:-6px;left:' + s.value + '%;width:20px;height:20px;background:#1e293b;border-radius:50%;transform:translateX(-50%);cursor:grab;" class="slider-thumb"></div></div>' +
+            '<span style="font-size:11px;color:#64748b;width:70px;">' + s.right + '</span></div>';
+        div.appendChild(row);
+    });
+
+    if (items.length) {
+        var itemDiv = document.createElement('div');
+        itemDiv.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:4px;';
+        items.forEach(function(item) {
+            var tag = document.createElement('span');
+            tag.style.cssText = 'padding:4px 10px;border-radius:12px;font-size:11px;font-weight:500;background:#eff6ff;color:#2563eb;cursor:pointer;border:1px solid #bfdbfe;';
+            tag.textContent = item.name + ' (' + item.position + ')';
+            tag.title = item.detail || '';
+            itemDiv.appendChild(tag);
+        });
+        div.appendChild(itemDiv);
+    }
+};
