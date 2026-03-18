@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PE - Physical Education Interactive Slides</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/slides.css">
+    <link rel="stylesheet" href="css/animations.css">
+</head>
+<body>
+    <div id="app">
+        <header id="header">
+            <button id="sidebar-toggle" aria-label="Toggle menu">&#9776;</button>
+            <span id="topic-name">Physical Education</span>
+            <span id="slide-counter">1 / 300</span>
+            <div id="progress-bar"><div id="progress-fill"></div></div>
+        </header>
+
+        <nav id="sidebar" class="closed">
+            <div id="sidebar-header">
+                <h2>Topics</h2>
+                <button id="sidebar-close" aria-label="Close menu">&times;</button>
+            </div>
+            <ul id="topic-list"></ul>
+        </nav>
+        <div id="sidebar-overlay"></div>
+
+        <main id="slide-container">
+            <div id="slide" class="slide">
+                <h1 id="slide-title"></h1>
+                <div id="slide-content"></div>
+                <div id="slide-animation"></div>
+                <p id="slide-hint" class="hint"></p>
+            </div>
+        </main>
+
+        <footer id="nav-footer">
+            <button id="prev-btn" aria-label="Previous slide">&#8592; Prev</button>
+            <button id="next-btn" aria-label="Next slide">Next &#8594;</button>
+        </footer>
+    </div>
+
+    <script src="js/slide-engine.js"></script>
+    <script src="js/animations.js"></script>
+    <script src="js/slides/01-intro.js"></script>
+    <script src="js/slides/02-fitness.js"></script>
+    <script src="js/slides/03-cardio.js"></script>
+    <script src="js/slides/04-strength.js"></script>
+    <script src="js/slides/05-flexibility.js"></script>
+    <script src="js/slides/06-sports-team.js"></script>
+    <script src="js/slides/07-sports-individual.js"></script>
+    <script src="js/slides/08-nutrition.js"></script>
+    <script src="js/slides/09-body-systems.js"></script>
+    <script src="js/slides/10-movement.js"></script>
+    <script src="js/slides/11-safety.js"></script>
+    <script src="js/slides/12-mental-health.js"></script>
+    <script src="js/slides/13-history.js"></script>
+    <script src="js/slides/14-biomechanics.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
