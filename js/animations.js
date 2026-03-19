@@ -1898,6 +1898,640 @@ Animations['vascular-shunt'] = function(container, cfg) {
     container.addEventListener('click', function() { isExercise = !isExercise; render(); });
 };
 
+/* ===== INTERACTIVE CONTINUUM — Draggable skill placement ===== */
+Animations['interactive-continuum'] = function(container, cfg) {
+    var scales = cfg.scales || [];
+    var div = document.createElement('div');
+    div.style.cssText = 'width:100%;padding:10px;display:flex;flex-direction:column;gap:16px;';
+    container.appendChild(div);
+
+    scales.forEach(function(s) {
+        var row = document.createElement('div');
+        row.style.cssText = 'position:relative;';
+        var labelRow = document.createElement('div');
+        labelRow.style.cssText = 'display:flex;justify-content:space-between;font-size:11px;color:#64748b;margin-bottom:2px;';
+        labelRow.innerHTML = '<span>' + s.left + '</span><span style="font-weight:600;color:#1e293b;font-size:12px;">' + s.label + '</span><span>' + s.right + '</span>';
+        row.appendChild(labelRow);
+
+        var track = document.createElement('div');
+        track.style.cssText = 'width:100%;height:12px;background:linear-gradient(to right,#2563eb,#93c5fd,#e2e8f0,#fca5a5,#ef4444);border-radius:6px;position:relative;cursor:pointer;';
+        row.appendChild(track);
+
+        var thumb = document.createElement('div');
+        var pos = s.value || 50;
+        thumb.style.cssText = 'position:absolute;top:-4px;left:' + pos + '%;width:20px;height:20px;background:#1e293b;border:2px solid #fff;border-radius:50%;transform:translateX(-50%);cursor:grab;box-shadow:0 2px 6px rgba(0,0,0,0.3);transition:left 0.1s;';
+        track.appendChild(thumb);
+
+        var valLabel = document.createElement('div');
+        valLabel.style.cssText = 'text-align:center;font-size:11px;color:#2563eb;font-weight:600;margin-top:2px;';
+        valLabel.textContent = s.example || '';
+        row.appendChild(valLabel);
+
+        // Draggable
+        var dragging = false;
+        function updatePos(e) {
+            var rect = track.getBoundingClientRect();
+            var x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+            var pct = Math.max(0, Math.min(100, (x / rect.width) * 100));
+            thumb.style.left = pct + '%';
+            if (pct < 30) valLabel.textContent = 'More ' + s.left;
+            else if (pct > 70) valLabel.textContent = 'More ' + s.right;
+            else valLabel.textContent = 'Mid-range';
+        }
+        thumb.addEventListener('mousedown', function() { dragging = true; });
+        track.addEventListener('click', updatePos);
+        document.addEventListener('mousemove', function(e) { if (dragging) updatePos(e); });
+        document.addEventListener('mouseup', function() { dragging = false; });
+        thumb.addEventListener('touchstart', function() { dragging = true; });
+        document.addEventListener('touchmove', function(e) { if (dragging) updatePos(e); });
+        document.addEventListener('touchend', function() { dragging = false; });
+
+        div.appendChild(row);
+    });
+};
+
+/* ===== INFORMATION PROCESSING MODEL ===== */
+Animations['info-processing'] = function(container, cfg) {
+    var stages = cfg.stages || [];
+    var title = cfg.title || 'Information Processing Model';
+    var div = document.createElement('div');
+    div.style.cssText = 'width:100%;padding:8px;';
+    container.appendChild(div);
+
+    var heading = document.createElement('div');
+    heading.style.cssText = 'text-align:center;font-size:13px;font-weight:700;color:#1e293b;margin-bottom:8px;';
+    heading.textContent = title;
+    div.appendChild(heading);
+
+    var flow = document.createElement('div');
+    flow.style.cssText = 'display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:4px;';
+    div.appendChild(flow);
+
+    var info = document.createElement('div');
+    info.style.cssText = 'text-align:center;font-size:12px;color:#1e293b;padding:8px;min-height:40px;background:#f8fafc;border-radius:8px;margin-top:8px;';
+    div.appendChild(info);
+
+    var activeIdx = -1;
+    stages.forEach(function(s, i) {
+        var box = document.createElement('div');
+        var colors = ['#2563eb','#7c3aed','#0891b2','#059669','#d97706','#dc2626','#6366f1','#ec4899'];
+        var col = colors[i % colors.length];
+        box.style.cssText = 'padding:8px 12px;border:2px solid ' + col + ';border-radius:10px;background:' + col + '15;cursor:pointer;font-size:11px;font-weight:600;color:#1e293b;text-align:center;min-width:70px;transition:all 0.3s;';
+        box.textContent = s.label;
+        box.addEventListener('click', function() {
+            activeIdx = i;
+            flow.querySelectorAll('div').forEach(function(d, j) {
+                if (stages[j]) {
+                    d.style.background = j === i ? col + '40' : colors[j % colors.length] + '15';
+                    d.style.transform = j === i ? 'scale(1.1)' : 'scale(1)';
+                }
+            });
+            info.innerHTML = '<strong style="color:' + col + '">' + s.label + '</strong><br>' + s.detail;
+        });
+        box.addEventListener('mouseenter', function() { box.style.transform = 'scale(1.08)'; });
+        box.addEventListener('mouseleave', function() { box.style.transform = activeIdx === i ? 'scale(1.1)' : 'scale(1)'; });
+        flow.appendChild(box);
+        if (i < stages.length - 1) {
+            var arrow = document.createElement('div');
+            arrow.style.cssText = 'font-size:16px;color:' + col + ';font-weight:700;';
+            arrow.textContent = '→';
+            flow.appendChild(arrow);
+        }
+    });
+    // Feedback arrow
+    if (cfg.feedback) {
+        var fb = document.createElement('div');
+        fb.style.cssText = 'width:100%;text-align:center;font-size:12px;color:#f59e0b;font-weight:600;margin-top:4px;cursor:pointer;';
+        fb.textContent = '↩ ' + cfg.feedback;
+        fb.addEventListener('click', function() {
+            info.innerHTML = '<strong style="color:#f59e0b">Feedback Loop</strong><br>' + (cfg.feedbackDetail || 'Information fed back to modify future input and processing.');
+        });
+        flow.appendChild(fb);
+    }
+};
+
+/* ===== WORKING MEMORY MODEL ===== */
+Animations['memory-model'] = function(container, cfg) {
+    var components = cfg.components || [];
+    var div = document.createElement('div');
+    div.style.cssText = 'width:100%;padding:8px;';
+    container.appendChild(div);
+
+    var title = document.createElement('div');
+    title.style.cssText = 'text-align:center;font-size:13px;font-weight:700;color:#1e293b;margin-bottom:8px;';
+    title.textContent = cfg.title || 'Working Memory Model';
+    div.appendChild(title);
+
+    var grid = document.createElement('div');
+    grid.style.cssText = 'display:flex;flex-wrap:wrap;justify-content:center;gap:8px;';
+    div.appendChild(grid);
+
+    var info = document.createElement('div');
+    info.style.cssText = 'text-align:center;font-size:12px;color:#1e293b;padding:8px;min-height:40px;background:#f8fafc;border-radius:8px;margin-top:8px;';
+    info.textContent = 'Click each component to learn about it';
+    div.appendChild(info);
+
+    components.forEach(function(c) {
+        var box = document.createElement('div');
+        var col = c.color || '#2563eb';
+        box.style.cssText = 'padding:10px 14px;border:2px solid ' + col + ';border-radius:10px;background:' + col + '15;cursor:pointer;font-size:11px;font-weight:600;color:#1e293b;text-align:center;min-width:100px;max-width:140px;transition:all 0.3s;';
+        box.innerHTML = '<div style="font-size:18px;margin-bottom:2px;">' + (c.icon || '🧠') + '</div>' + c.label;
+        box.addEventListener('click', function() {
+            grid.querySelectorAll('div').forEach(function(d) { d.style.transform = 'scale(1)'; });
+            box.style.transform = 'scale(1.1)';
+            info.innerHTML = '<strong style="color:' + col + '">' + c.label + '</strong><br>' + c.detail;
+        });
+        box.addEventListener('mouseenter', function() { box.style.transform = 'scale(1.05)'; });
+        box.addEventListener('mouseleave', function() { box.style.transform = 'scale(1)'; });
+        grid.appendChild(box);
+    });
+};
+
+/* ===== HICK'S LAW — Interactive reaction time demo ===== */
+Animations['hicks-law'] = function(container, cfg) {
+    var div = document.createElement('div');
+    div.style.cssText = 'width:100%;padding:12px;text-align:center;';
+    container.appendChild(div);
+
+    var heading = document.createElement('div');
+    heading.style.cssText = 'font-size:13px;font-weight:700;color:#1e293b;margin-bottom:8px;';
+    heading.textContent = cfg.title || "Hick's Law — More choices = slower reaction";
+    div.appendChild(heading);
+
+    var choiceCount = 2;
+    var results = [];
+    var btnArea = document.createElement('div');
+    btnArea.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:8px 0;';
+    div.appendChild(btnArea);
+
+    var feedback = document.createElement('div');
+    feedback.style.cssText = 'font-size:13px;color:#64748b;margin:8px 0;min-height:20px;';
+    div.appendChild(feedback);
+
+    var chartArea = document.createElement('div');
+    chartArea.style.cssText = 'width:100%;height:80px;position:relative;margin-top:8px;';
+    div.appendChild(chartArea);
+
+    var waiting = false, targetIdx = -1, startTime = 0;
+    var colors = ['#ef4444','#2563eb','#22c55e','#f59e0b','#7c3aed','#ec4899','#0891b2','#84cc16'];
+
+    function startRound() {
+        btnArea.innerHTML = '';
+        feedback.textContent = 'Wait for a button to highlight, then click it!';
+        waiting = true;
+        var btns = [];
+        for (var i = 0; i < choiceCount; i++) {
+            var btn = document.createElement('div');
+            btn.style.cssText = 'width:50px;height:50px;border-radius:10px;background:#e2e8f0;border:2px solid #cbd5e1;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:#64748b;transition:all 0.2s;';
+            btn.textContent = i + 1;
+            btn.dataset.idx = i;
+            btn.addEventListener('click', function() {
+                if (!waiting) return;
+                var idx = parseInt(this.dataset.idx);
+                if (idx === targetIdx) {
+                    var rt = Date.now() - startTime;
+                    results.push({choices: choiceCount, time: rt});
+                    feedback.innerHTML = '<span style="color:#22c55e;font-weight:600;">Correct!</span> RT: <strong>' + rt + 'ms</strong> with ' + choiceCount + ' choices';
+                    waiting = false;
+                    drawChart();
+                    // Next round with more choices
+                    setTimeout(function() {
+                        if (choiceCount < 8) choiceCount++;
+                        startRound();
+                    }, 1500);
+                } else {
+                    feedback.innerHTML = '<span style="color:#ef4444;font-weight:600;">Wrong!</span> Try again — click the highlighted button';
+                }
+            });
+            btns.push(btn);
+            btnArea.appendChild(btn);
+        }
+        // Highlight after random delay
+        var delay = 1000 + Math.random() * 2000;
+        setTimeout(function() {
+            if (!waiting) return;
+            targetIdx = Math.floor(Math.random() * choiceCount);
+            btns[targetIdx].style.background = colors[targetIdx % colors.length];
+            btns[targetIdx].style.borderColor = '#1e293b';
+            btns[targetIdx].style.color = '#fff';
+            startTime = Date.now();
+        }, delay);
+    }
+
+    function drawChart() {
+        chartArea.innerHTML = '';
+        if (results.length === 0) return;
+        var maxT = Math.max.apply(null, results.map(function(r) { return r.time; }));
+        results.forEach(function(r, i) {
+            var bar = document.createElement('div');
+            var w = (r.time / (maxT + 100)) * 100;
+            bar.style.cssText = 'display:flex;align-items:center;gap:6px;margin:2px 0;';
+            bar.innerHTML = '<span style="font-size:10px;width:20px;text-align:right;">' + r.choices + '</span>' +
+                '<div style="height:12px;width:' + w + '%;background:' + colors[(r.choices - 2) % colors.length] + ';border-radius:6px;transition:width 0.5s;"></div>' +
+                '<span style="font-size:10px;color:#64748b;">' + r.time + 'ms</span>';
+            chartArea.appendChild(bar);
+        });
+    }
+
+    startRound();
+};
+
+/* ===== PRP DEMO — Psychological Refractory Period ===== */
+Animations['prp-demo'] = function(container, cfg) {
+    var div = document.createElement('div');
+    div.style.cssText = 'width:100%;padding:12px;text-align:center;';
+    container.appendChild(div);
+
+    var heading = document.createElement('div');
+    heading.style.cssText = 'font-size:13px;font-weight:700;color:#1e293b;margin-bottom:8px;';
+    heading.textContent = cfg.title || 'Psychological Refractory Period';
+    div.appendChild(heading);
+
+    var desc = document.createElement('div');
+    desc.style.cssText = 'font-size:12px;color:#64748b;margin-bottom:8px;';
+    desc.textContent = 'Two stimuli appear in quick succession. Notice the delay in responding to the second!';
+    div.appendChild(desc);
+
+    var stimArea = document.createElement('div');
+    stimArea.style.cssText = 'display:flex;gap:20px;justify-content:center;margin:12px 0;';
+    div.appendChild(stimArea);
+
+    var s1 = document.createElement('div');
+    s1.style.cssText = 'width:80px;height:80px;border-radius:50%;background:#e2e8f0;border:3px solid #cbd5e1;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#64748b;cursor:pointer;transition:all 0.3s;';
+    s1.textContent = 'S1';
+    stimArea.appendChild(s1);
+
+    var s2 = document.createElement('div');
+    s2.style.cssText = 'width:80px;height:80px;border-radius:50%;background:#e2e8f0;border:3px solid #cbd5e1;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#64748b;cursor:pointer;transition:all 0.3s;';
+    s2.textContent = 'S2';
+    stimArea.appendChild(s2);
+
+    var feedback = document.createElement('div');
+    feedback.style.cssText = 'font-size:12px;color:#1e293b;min-height:40px;margin-top:8px;';
+    div.appendChild(feedback);
+
+    var startBtn = document.createElement('button');
+    startBtn.style.cssText = 'padding:8px 20px;border:none;border-radius:8px;background:#2563eb;color:#fff;font-weight:600;cursor:pointer;font-size:13px;';
+    startBtn.textContent = 'Start Trial';
+    div.appendChild(startBtn);
+
+    var trial = 0;
+    startBtn.addEventListener('click', function() {
+        trial++;
+        var gap = trial % 2 === 1 ? 150 : 800; // Alternate short/long gap
+        feedback.textContent = 'Watch... Stimulus 1 coming...';
+        s1.style.background = '#e2e8f0'; s1.style.borderColor = '#cbd5e1';
+        s2.style.background = '#e2e8f0'; s2.style.borderColor = '#cbd5e1';
+        startBtn.disabled = true;
+
+        var t1, t2, r1 = 0, r2 = 0;
+        setTimeout(function() {
+            s1.style.background = '#ef4444'; s1.style.borderColor = '#dc2626'; s1.style.color = '#fff';
+            t1 = Date.now();
+            feedback.textContent = 'Click S1 NOW!';
+        }, 1000 + Math.random() * 500);
+
+        var s1clicked = false;
+        function onS1() {
+            if (s1clicked) return;
+            s1clicked = true;
+            r1 = Date.now() - t1;
+            s1.style.background = '#22c55e'; s1.style.borderColor = '#16a34a';
+            setTimeout(function() {
+                s2.style.background = '#2563eb'; s2.style.borderColor = '#1d4ed8'; s2.style.color = '#fff';
+                t2 = Date.now();
+                feedback.textContent = 'Click S2 NOW! (gap was ' + gap + 'ms)';
+            }, gap);
+        }
+        s1.onclick = onS1;
+
+        s2.onclick = function() {
+            if (!s1clicked || !t2) return;
+            r2 = Date.now() - t2;
+            s2.style.background = '#22c55e'; s2.style.borderColor = '#16a34a';
+            feedback.innerHTML = 'S1 RT: <strong>' + r1 + 'ms</strong> | S2 RT: <strong>' + r2 + 'ms</strong> (gap: ' + gap + 'ms)<br>' +
+                (gap < 300 ? '<span style="color:#ef4444;">Short gap → PRP causes delayed S2 response!</span>' : '<span style="color:#22c55e;">Long gap → enough time to process both</span>');
+            startBtn.disabled = false;
+        };
+    });
+};
+
+/* ===== GOLDEN TRIANGLE — Sport, Media, Sponsorship ===== */
+Animations['golden-triangle'] = function(container, cfg) {
+    var points = cfg.points || [
+        {label:'Sport', detail:'Governing bodies and athletes provide exciting content.', color:'#2563eb'},
+        {label:'Media', detail:'TV, radio, internet broadcast sport to millions.', color:'#ef4444'},
+        {label:'Sponsorship', detail:'Businesses invest money in return for exposure.', color:'#f59e0b'}
+    ];
+    var canvas = document.createElement('canvas');
+    canvas.width = 300; canvas.height = 240;
+    canvas.style.cssText = 'display:block;margin:0 auto;cursor:pointer;';
+    container.appendChild(canvas);
+    var ctx = canvas.getContext('2d');
+
+    var info = document.createElement('div');
+    info.style.cssText = 'text-align:center;font-size:12px;color:#1e293b;padding:6px;min-height:30px;';
+    info.textContent = 'Click each corner of the triangle';
+    container.appendChild(info);
+
+    var tri = [
+        {x:150, y:30},  // top
+        {x:40, y:210},  // bottom-left
+        {x:260, y:210}  // bottom-right
+    ];
+    var activeIdx = -1;
+    var pulsePhase = 0;
+
+    function draw() {
+        ctx.clearRect(0, 0, 300, 240);
+        // Draw edges with animated dashes
+        ctx.setLineDash([8, 4]);
+        ctx.lineDashOffset = -pulsePhase;
+        for (var i = 0; i < 3; i++) {
+            var j = (i + 1) % 3;
+            ctx.beginPath();
+            ctx.moveTo(tri[i].x, tri[i].y);
+            ctx.lineTo(tri[j].x, tri[j].y);
+            ctx.strokeStyle = activeIdx === i || activeIdx === j ? '#1e293b' : '#cbd5e1';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            // Arrow label on edge
+            var mx = (tri[i].x + tri[j].x) / 2;
+            var my = (tri[i].y + tri[j].y) / 2;
+            ctx.setLineDash([]);
+            ctx.fillStyle = '#64748b';
+            ctx.font = '10px system-ui';
+            ctx.textAlign = 'center';
+            var labels = ['£ & exposure','content & audiences','revenue & coverage'];
+            ctx.fillText(labels[i], mx + (i === 0 ? 30 : i === 1 ? 0 : -30), my + (i === 0 ? 0 : 12));
+            ctx.setLineDash([8, 4]);
+            ctx.lineDashOffset = -pulsePhase;
+        }
+        ctx.setLineDash([]);
+        // Draw nodes
+        for (var i = 0; i < 3; i++) {
+            var r = activeIdx === i ? 28 : 24;
+            ctx.beginPath();
+            ctx.arc(tri[i].x, tri[i].y, r, 0, Math.PI * 2);
+            ctx.fillStyle = points[i].color + (activeIdx === i ? '' : '90');
+            ctx.fill();
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 11px system-ui';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(points[i].label, tri[i].x, tri[i].y);
+        }
+        pulsePhase += 0.3;
+        requestAnimationFrame(draw);
+    }
+
+    canvas.addEventListener('click', function(e) {
+        var rect = canvas.getBoundingClientRect();
+        var mx = (e.clientX - rect.left) * (300 / rect.width);
+        var my = (e.clientY - rect.top) * (240 / rect.height);
+        for (var i = 0; i < 3; i++) {
+            var dx = mx - tri[i].x, dy = my - tri[i].y;
+            if (dx * dx + dy * dy < 900) {
+                activeIdx = i;
+                info.innerHTML = '<strong style="color:' + points[i].color + '">' + points[i].label + '</strong>: ' + points[i].detail;
+                break;
+            }
+        }
+    });
+    draw();
+};
+
+/* ===== BARRIER EXPLORER — Interactive barriers/solutions ===== */
+Animations['barrier-explorer'] = function(container, cfg) {
+    var groups = cfg.groups || [];
+    var div = document.createElement('div');
+    div.style.cssText = 'width:100%;padding:8px;';
+    container.appendChild(div);
+
+    var tabs = document.createElement('div');
+    tabs.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:8px;';
+    div.appendChild(tabs);
+
+    var content = document.createElement('div');
+    content.style.cssText = 'padding:10px;background:#f8fafc;border-radius:10px;min-height:80px;font-size:12px;';
+    div.appendChild(content);
+
+    groups.forEach(function(g, i) {
+        var tab = document.createElement('button');
+        tab.style.cssText = 'padding:6px 14px;border:2px solid ' + (g.color || '#2563eb') + ';border-radius:20px;background:transparent;cursor:pointer;font-size:11px;font-weight:600;color:' + (g.color || '#2563eb') + ';transition:all 0.2s;';
+        tab.textContent = g.label;
+        tab.addEventListener('click', function() {
+            tabs.querySelectorAll('button').forEach(function(b) { b.style.background = 'transparent'; b.style.color = b.style.borderColor; });
+            tab.style.background = g.color || '#2563eb';
+            tab.style.color = '#fff';
+            content.innerHTML = '<div style="font-weight:700;margin-bottom:6px;color:' + (g.color || '#2563eb') + ';">' + g.label + '</div>';
+            if (g.barriers) {
+                content.innerHTML += '<div style="margin-bottom:6px;"><strong>Barriers:</strong></div>';
+                g.barriers.forEach(function(b) {
+                    content.innerHTML += '<div style="padding:3px 0;border-bottom:1px solid #e2e8f0;">⛔ ' + b + '</div>';
+                });
+            }
+            if (g.solutions) {
+                content.innerHTML += '<div style="margin-top:6px;margin-bottom:6px;"><strong>Solutions:</strong></div>';
+                g.solutions.forEach(function(s) {
+                    content.innerHTML += '<div style="padding:3px 0;border-bottom:1px solid #e2e8f0;">✅ ' + s + '</div>';
+                });
+            }
+            if (g.detail) content.innerHTML += '<p style="margin-top:6px;color:#64748b;">' + g.detail + '</p>';
+        });
+        tab.addEventListener('mouseenter', function() { tab.style.transform = 'scale(1.05)'; });
+        tab.addEventListener('mouseleave', function() { tab.style.transform = 'scale(1)'; });
+        tabs.appendChild(tab);
+    });
+};
+
+/* ===== LEARNING CURVE — Interactive plateau graph ===== */
+Animations['learning-curve'] = function(container, cfg) {
+    var canvas = document.createElement('canvas');
+    canvas.width = 300; canvas.height = 200;
+    canvas.style.cssText = 'display:block;margin:0 auto;cursor:pointer;';
+    container.appendChild(canvas);
+    var ctx = canvas.getContext('2d');
+
+    var info = document.createElement('div');
+    info.style.cssText = 'text-align:center;font-size:12px;color:#1e293b;padding:6px;min-height:20px;';
+    info.textContent = cfg.hint || 'Click on different parts of the curve';
+    container.appendChild(info);
+
+    var stages = cfg.stages || [
+        {name:'Cognitive', x1:0, x2:0.25, color:'#ef4444'},
+        {name:'Associative', x1:0.25, x2:0.6, color:'#f59e0b'},
+        {name:'Plateau', x1:0.6, x2:0.75, color:'#64748b'},
+        {name:'Autonomous', x1:0.75, x2:1, color:'#22c55e'}
+    ];
+
+    var animProgress = 0;
+    var activeStage = -1;
+
+    function curve(t) {
+        // S-curve with plateau
+        if (t < 0.25) return t * 2.4; // rapid early
+        if (t < 0.6) return 0.6 + (t - 0.25) * 0.57; // slower
+        if (t < 0.75) return 0.8 + Math.sin((t - 0.6) * 20) * 0.02; // plateau
+        return 0.8 + (t - 0.75) * 0.8; // breakthrough
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, 300, 200);
+        var pad = {l:35, r:10, t:10, b:30};
+        var w = 300 - pad.l - pad.r, h = 200 - pad.t - pad.b;
+
+        // Axes
+        ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(pad.l, pad.t); ctx.lineTo(pad.l, 200 - pad.b); ctx.lineTo(300 - pad.r, 200 - pad.b); ctx.stroke();
+        ctx.fillStyle = '#64748b'; ctx.font = '10px system-ui'; ctx.textAlign = 'center';
+        ctx.fillText('Practice / Time', 150, 195);
+        ctx.save(); ctx.translate(12, 100); ctx.rotate(-Math.PI / 2); ctx.fillText('Performance', 0, 0); ctx.restore();
+
+        // Stage backgrounds
+        stages.forEach(function(s, i) {
+            ctx.fillStyle = s.color + (activeStage === i ? '30' : '10');
+            ctx.fillRect(pad.l + s.x1 * w, pad.t, (s.x2 - s.x1) * w, h);
+            ctx.fillStyle = s.color;
+            ctx.font = 'bold 9px system-ui';
+            ctx.fillText(s.name, pad.l + ((s.x1 + s.x2) / 2) * w, 200 - pad.b + 14);
+        });
+
+        // Draw curve
+        ctx.beginPath();
+        ctx.strokeStyle = '#2563eb'; ctx.lineWidth = 3;
+        var maxT = Math.min(animProgress, 1);
+        for (var t = 0; t <= maxT; t += 0.005) {
+            var x = pad.l + t * w;
+            var y = (200 - pad.b) - curve(t) * h;
+            if (t === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        if (animProgress < 1.05) {
+            animProgress += 0.015;
+            requestAnimationFrame(draw);
+        }
+    }
+
+    canvas.addEventListener('click', function(e) {
+        var rect = canvas.getBoundingClientRect();
+        var mx = (e.clientX - rect.left) * (300 / rect.width);
+        var pad = {l:35, r:10};
+        var w = 300 - pad.l - pad.r;
+        var t = (mx - pad.l) / w;
+        for (var i = 0; i < stages.length; i++) {
+            if (t >= stages[i].x1 && t <= stages[i].x2) {
+                activeStage = i;
+                info.innerHTML = '<strong style="color:' + stages[i].color + '">' + stages[i].name + '</strong>: ' + (stages[i].detail || '');
+                animProgress = 0;
+                draw();
+                break;
+            }
+        }
+    });
+    draw();
+};
+
+/* ===== SCHEMA THEORY — Interactive schema diagram ===== */
+Animations['schema-theory'] = function(container, cfg) {
+    var schemas = cfg.schemas || [];
+    var div = document.createElement('div');
+    div.style.cssText = 'width:100%;padding:8px;';
+    container.appendChild(div);
+
+    var title = document.createElement('div');
+    title.style.cssText = 'text-align:center;font-size:13px;font-weight:700;color:#1e293b;margin-bottom:8px;';
+    title.textContent = cfg.title || "Schmidt's Schema Theory";
+    div.appendChild(title);
+
+    var center = document.createElement('div');
+    center.style.cssText = 'width:60px;height:60px;border-radius:50%;background:#2563eb;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;margin:0 auto 10px;text-align:center;';
+    center.textContent = 'Motor\nSchema';
+    div.appendChild(center);
+
+    var grid = document.createElement('div');
+    grid.style.cssText = 'display:flex;flex-wrap:wrap;justify-content:center;gap:8px;';
+    div.appendChild(grid);
+
+    var info = document.createElement('div');
+    info.style.cssText = 'text-align:center;font-size:12px;color:#1e293b;padding:8px;min-height:40px;background:#f8fafc;border-radius:8px;margin-top:8px;';
+    info.textContent = 'Click each schema source to learn more';
+    div.appendChild(info);
+
+    var colors = ['#ef4444','#f59e0b','#22c55e','#7c3aed','#0891b2','#ec4899'];
+    schemas.forEach(function(s, i) {
+        var box = document.createElement('div');
+        var col = colors[i % colors.length];
+        box.style.cssText = 'padding:8px 14px;border:2px solid ' + col + ';border-radius:10px;background:' + col + '15;cursor:pointer;font-size:11px;font-weight:600;color:#1e293b;text-align:center;min-width:90px;transition:all 0.3s;';
+        box.textContent = s.label;
+        box.addEventListener('click', function() {
+            grid.querySelectorAll('div').forEach(function(d) { d.style.transform = 'scale(1)'; });
+            box.style.transform = 'scale(1.1)';
+            info.innerHTML = '<strong style="color:' + col + '">' + s.label + '</strong><br>' + s.detail;
+            // Animate connection line
+            center.style.background = col;
+            setTimeout(function() { center.style.background = '#2563eb'; }, 600);
+        });
+        grid.appendChild(box);
+    });
+};
+
+/* ===== SOCIAL THEORY — Interactive theory explorer ===== */
+Animations['social-theory'] = function(container, cfg) {
+    var theories = cfg.theories || [];
+    var div = document.createElement('div');
+    div.style.cssText = 'width:100%;padding:8px;';
+    container.appendChild(div);
+
+    var heading = document.createElement('div');
+    heading.style.cssText = 'text-align:center;font-size:13px;font-weight:700;color:#1e293b;margin-bottom:10px;';
+    heading.textContent = cfg.title || 'Theories';
+    div.appendChild(heading);
+
+    var carousel = document.createElement('div');
+    carousel.style.cssText = 'position:relative;overflow:hidden;min-height:140px;';
+    div.appendChild(carousel);
+
+    var idx = 0;
+    var colors = ['#2563eb','#7c3aed','#059669','#d97706','#dc2626','#ec4899'];
+
+    function showTheory() {
+        var t = theories[idx];
+        var col = colors[idx % colors.length];
+        carousel.innerHTML = '';
+        var card = document.createElement('div');
+        card.style.cssText = 'padding:14px;border:2px solid ' + col + ';border-radius:12px;background:' + col + '10;animation:fadeInUp 0.4s ease;';
+        card.innerHTML = '<div style="font-weight:700;color:' + col + ';font-size:14px;margin-bottom:6px;">' + t.name + '</div>' +
+            '<div style="font-size:12px;color:#1e293b;line-height:1.6;">' + t.detail + '</div>' +
+            (t.example ? '<div style="margin-top:6px;padding:6px;background:#f8fafc;border-radius:6px;font-size:11px;color:#64748b;"><strong>Sporting example:</strong> ' + t.example + '</div>' : '');
+        carousel.appendChild(card);
+
+        var counter = document.createElement('div');
+        counter.style.cssText = 'text-align:center;font-size:11px;color:#64748b;margin-top:6px;';
+        counter.textContent = (idx + 1) + ' / ' + theories.length;
+        carousel.appendChild(counter);
+    }
+
+    var navRow = document.createElement('div');
+    navRow.style.cssText = 'display:flex;justify-content:center;gap:12px;margin-top:6px;';
+    var prevBtn = document.createElement('button');
+    prevBtn.style.cssText = 'padding:4px 16px;border:1px solid #cbd5e1;border-radius:6px;background:#fff;cursor:pointer;font-size:12px;';
+    prevBtn.textContent = '← Prev';
+    prevBtn.addEventListener('click', function() { idx = (idx - 1 + theories.length) % theories.length; showTheory(); });
+    var nextBtn = document.createElement('button');
+    nextBtn.style.cssText = 'padding:4px 16px;border:1px solid #cbd5e1;border-radius:6px;background:#fff;cursor:pointer;font-size:12px;';
+    nextBtn.textContent = 'Next →';
+    nextBtn.addEventListener('click', function() { idx = (idx + 1) % theories.length; showTheory(); });
+    navRow.appendChild(prevBtn); navRow.appendChild(nextBtn);
+    div.appendChild(navRow);
+
+    showTheory();
+};
+
 /* ===== CONTINUUM SCALE — For skill classification ===== */
 Animations['continuum'] = function(container, cfg) {
     var scales = cfg.scales || [{label:'Open — Closed', left:'Open', right:'Closed', value:50}];
