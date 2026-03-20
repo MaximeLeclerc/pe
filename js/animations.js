@@ -2564,3 +2564,309 @@ Animations['continuum'] = function(container, cfg) {
         div.appendChild(itemDiv);
     }
 };
+
+/* ===== AUDIENCE EFFECT — Social facilitation visualization ===== */
+Animations['audience-effect'] = function(container, cfg) {
+    var canvas = document.createElement('canvas');
+    canvas.width = 340; canvas.height = 220;
+    container.appendChild(canvas);
+    var ctx = canvas.getContext('2d');
+    var audienceSize = 0;
+    var taskType = cfg.startTask || 'simple';
+    var maxAudience = 5;
+    var info = document.createElement('div');
+    info.style.cssText = 'position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:12px;color:#1e293b;font-weight:500;';
+    container.appendChild(info);
+
+    var toggleBtn = document.createElement('button');
+    toggleBtn.className = 'anim-btn';
+    toggleBtn.style.cssText = 'position:absolute;top:6px;right:6px;padding:4px 10px;border:1px solid #cbd5e1;border-radius:6px;background:#fff;cursor:pointer;font-size:11px;';
+    toggleBtn.textContent = 'Task: Simple';
+    toggleBtn.addEventListener('click', function() {
+        taskType = taskType === 'simple' ? 'complex' : 'simple';
+        toggleBtn.textContent = 'Task: ' + (taskType === 'simple' ? 'Simple' : 'Complex');
+        draw();
+    });
+    container.appendChild(toggleBtn);
+
+    function draw() {
+        ctx.clearRect(0, 0, 340, 220);
+        // Stage
+        ctx.fillStyle = '#e2e8f0';
+        ctx.fillRect(120, 60, 100, 100);
+        ctx.strokeStyle = '#94a3b8';
+        ctx.strokeRect(120, 60, 100, 100);
+        ctx.fillStyle = '#64748b';
+        ctx.font = '10px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('STAGE', 170, 170);
+
+        // Performer stick figure
+        var perf = taskType === 'simple' ? (audienceSize > 0 ? 1 : 0.6) : (audienceSize > 2 ? 0.3 : audienceSize > 0 ? 0.7 : 0.9);
+        var perfColor = perf > 0.7 ? '#22c55e' : perf > 0.4 ? '#f59e0b' : '#ef4444';
+        ctx.strokeStyle = perfColor;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(170, 85, 10, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(170, 95); ctx.lineTo(170, 125);
+        ctx.moveTo(170, 105); ctx.lineTo(155, 115);
+        ctx.moveTo(170, 105); ctx.lineTo(185, 115);
+        ctx.moveTo(170, 125); ctx.lineTo(158, 145);
+        ctx.moveTo(170, 125); ctx.lineTo(182, 145);
+        ctx.stroke();
+        ctx.lineWidth = 1;
+
+        // Performance bar
+        ctx.fillStyle = '#f1f5f9';
+        ctx.fillRect(20, 80, 80, 16);
+        ctx.fillStyle = perfColor;
+        ctx.fillRect(20, 80, 80 * perf, 16);
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.strokeRect(20, 80, 80, 16);
+        ctx.fillStyle = '#1e293b';
+        ctx.font = '9px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Performance', 60, 75);
+        ctx.fillText(Math.round(perf * 100) + '%', 60, 93);
+
+        // Audience figures
+        for (var i = 0; i < maxAudience; i++) {
+            var ax = 250 + (i % 2) * 30;
+            var ay = 70 + Math.floor(i / 2) * 45;
+            if (i < audienceSize) {
+                ctx.fillStyle = '#2563eb';
+                ctx.beginPath();
+                ctx.arc(ax, ay, 7, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#2563eb';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(ax, ay + 7); ctx.lineTo(ax, ay + 22);
+                ctx.moveTo(ax, ay + 12); ctx.lineTo(ax - 8, ay + 18);
+                ctx.moveTo(ax, ay + 12); ctx.lineTo(ax + 8, ay + 18);
+                ctx.stroke();
+                ctx.lineWidth = 1;
+            } else {
+                ctx.strokeStyle = '#cbd5e1';
+                ctx.setLineDash([3, 3]);
+                ctx.beginPath();
+                ctx.arc(ax, ay, 7, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+        }
+
+        ctx.fillStyle = '#64748b';
+        ctx.font = '10px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('AUDIENCE (' + audienceSize + ')', 265, 200);
+
+        var msg = taskType === 'simple'
+            ? (audienceSize > 0 ? 'Audience HELPS simple/well-learned tasks (social facilitation)' : 'Click canvas to add audience members')
+            : (audienceSize > 2 ? 'Audience HINDERS complex/new tasks (social inhibition)' : audienceSize > 0 ? 'Some audience — slight inhibition on complex task' : 'Click canvas to add audience members');
+        info.textContent = msg;
+    }
+
+    canvas.addEventListener('click', function() {
+        audienceSize = (audienceSize + 1) % (maxAudience + 1);
+        draw();
+    });
+
+    draw();
+};
+
+/* ===== WEINER GRID — 2x2 Attribution model ===== */
+Animations['weiner-grid'] = function(container, cfg) {
+    var cells = cfg.cells || [
+        {label: 'Ability', detail: 'Internal + Stable', quadrant: 'TL'},
+        {label: 'Task Difficulty', detail: 'External + Stable', quadrant: 'TR'},
+        {label: 'Effort', detail: 'Internal + Unstable', quadrant: 'BL'},
+        {label: 'Luck', detail: 'External + Unstable', quadrant: 'BR'}
+    ];
+    var div = document.createElement('div');
+    div.style.cssText = 'width:100%;padding:8px;';
+    container.appendChild(div);
+
+    // Axis labels
+    var topLabels = document.createElement('div');
+    topLabels.style.cssText = 'display:flex;justify-content:center;gap:0;margin-bottom:2px;';
+    topLabels.innerHTML = '<div style="width:42%;"></div><div style="width:25%;text-align:center;font-size:11px;font-weight:700;color:#2563eb;">INTERNAL</div><div style="width:25%;text-align:center;font-size:11px;font-weight:700;color:#ef4444;">EXTERNAL</div>';
+    div.appendChild(topLabels);
+
+    var grid = document.createElement('div');
+    grid.style.cssText = 'display:grid;grid-template-columns:60px 1fr 1fr;grid-template-rows:auto auto;gap:4px;';
+    div.appendChild(grid);
+
+    var detail = document.createElement('div');
+    detail.style.cssText = 'grid-column:1/-1;padding:8px;background:#f8fafc;border-radius:8px;text-align:center;font-size:12px;color:#64748b;min-height:40px;display:flex;align-items:center;justify-content:center;margin-top:6px;';
+    detail.textContent = 'Click a quadrant to explore';
+
+    var colors = {TL: '#2563eb', TR: '#ef4444', BL: '#7c3aed', BR: '#f59e0b'};
+
+    function makeCell(cellData) {
+        var c = document.createElement('div');
+        var col = colors[cellData.quadrant] || '#64748b';
+        c.style.cssText = 'padding:12px;border:2px solid ' + col + '30;border-radius:10px;background:' + col + '08;cursor:pointer;text-align:center;transition:all 0.2s;';
+        c.innerHTML = '<div style="font-weight:700;font-size:13px;color:' + col + ';">' + cellData.label + '</div><div style="font-size:10px;color:#64748b;margin-top:2px;">' + cellData.detail + '</div>';
+        c.addEventListener('click', function() {
+            detail.innerHTML = '<div style="color:' + col + ';font-weight:600;">' + cellData.label + '</div><div style="margin-top:4px;color:#1e293b;">' + (cellData.example || cellData.detail) + '</div>';
+            c.style.borderColor = col;
+            c.style.background = col + '18';
+        });
+        c.addEventListener('mouseenter', function() { c.style.transform = 'scale(1.03)'; });
+        c.addEventListener('mouseleave', function() { c.style.transform = 'scale(1)'; });
+        return c;
+    }
+
+    // Stable row
+    var stableLabel = document.createElement('div');
+    stableLabel.style.cssText = 'display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#059669;';
+    stableLabel.textContent = 'STABLE';
+    grid.appendChild(stableLabel);
+
+    var tlCell = cells.filter(function(c) { return c.quadrant === 'TL'; })[0];
+    grid.appendChild(makeCell(tlCell));
+    var trCell = cells.filter(function(c) { return c.quadrant === 'TR'; })[0];
+    grid.appendChild(trCell ? makeCell(trCell) : document.createElement('div'));
+
+    // Unstable row
+    var unstableLabel = document.createElement('div');
+    unstableLabel.style.cssText = 'display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#d97706;';
+    unstableLabel.textContent = 'UNSTABLE';
+    grid.appendChild(unstableLabel);
+
+    var blCell = cells.filter(function(c) { return c.quadrant === 'BL'; })[0];
+    grid.appendChild(blCell ? makeCell(blCell) : document.createElement('div'));
+    var brCell = cells.filter(function(c) { return c.quadrant === 'BR'; })[0];
+    grid.appendChild(brCell ? makeCell(brCell) : document.createElement('div'));
+
+    div.appendChild(detail);
+};
+
+/* ===== TUCKMAN STAGES — Group formation model ===== */
+Animations['tuckman-stages'] = function(container, cfg) {
+    var stages = cfg.stages || [
+        {name: 'Forming', color: '#2563eb', detail: 'Group comes together. Polite, cautious, testing boundaries.', icon: '?'},
+        {name: 'Storming', color: '#ef4444', detail: 'Conflict arises. Members compete for roles and status.', icon: '!'},
+        {name: 'Norming', color: '#f59e0b', detail: 'Rules established. Cooperation develops, roles accepted.', icon: '='},
+        {name: 'Performing', color: '#22c55e', detail: 'Team works effectively towards shared goals.', icon: '*'}
+    ];
+    var idx = 0;
+    var div = document.createElement('div');
+    div.style.cssText = 'width:100%;padding:8px;display:flex;flex-direction:column;align-items:center;gap:8px;';
+    container.appendChild(div);
+
+    // Stage indicators
+    var indicators = document.createElement('div');
+    indicators.style.cssText = 'display:flex;gap:4px;width:100%;';
+    div.appendChild(indicators);
+
+    var stageEls = [];
+    stages.forEach(function(s, i) {
+        var el = document.createElement('div');
+        el.style.cssText = 'flex:1;padding:8px 4px;border-radius:8px;text-align:center;cursor:pointer;transition:all 0.3s;border:2px solid transparent;';
+        el.innerHTML = '<div style="font-size:16px;font-weight:700;">' + s.icon + '</div><div style="font-size:11px;font-weight:600;">' + s.name + '</div>';
+        el.addEventListener('click', function() { idx = i; render(); });
+        indicators.appendChild(el);
+        stageEls.push(el);
+    });
+
+    // Detail area
+    var detailArea = document.createElement('div');
+    detailArea.style.cssText = 'width:100%;padding:12px;border-radius:10px;text-align:center;font-size:13px;line-height:1.6;transition:all 0.3s;min-height:60px;';
+    div.appendChild(detailArea);
+
+    // Team visualization canvas
+    var canvas = document.createElement('canvas');
+    canvas.width = 300; canvas.height = 90;
+    div.appendChild(canvas);
+    var ctx = canvas.getContext('2d');
+
+    function drawTeam(stage) {
+        ctx.clearRect(0, 0, 300, 90);
+        var positions;
+        var col = stages[stage].color;
+        if (stage === 0) {
+            positions = [[40,45],[100,25],[160,60],[220,30],[280,50]];
+        } else if (stage === 1) {
+            positions = [[120,30],[160,25],[140,55],[180,50],[150,40]];
+        } else if (stage === 2) {
+            positions = [[100,45],[140,20],[180,20],[220,45],[160,65]];
+        } else {
+            positions = [[120,35],[150,18],[180,35],[165,60],[135,60]];
+        }
+        if (stage >= 2) {
+            ctx.strokeStyle = col + '40';
+            ctx.lineWidth = 1;
+            for (var i = 0; i < positions.length; i++) {
+                for (var j = i + 1; j < positions.length; j++) {
+                    ctx.beginPath();
+                    ctx.moveTo(positions[i][0], positions[i][1]);
+                    ctx.lineTo(positions[j][0], positions[j][1]);
+                    ctx.stroke();
+                }
+            }
+        }
+        if (stage === 1) {
+            ctx.strokeStyle = '#ef444480';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([4, 4]);
+            for (var k = 0; k < 3; k++) {
+                ctx.beginPath();
+                ctx.moveTo(positions[k][0], positions[k][1]);
+                ctx.lineTo(positions[k + 1][0], positions[k + 1][1]);
+                ctx.stroke();
+            }
+            ctx.setLineDash([]);
+        }
+        positions.forEach(function(p) {
+            ctx.fillStyle = col;
+            ctx.beginPath();
+            ctx.arc(p[0], p[1], 10, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#fff';
+            ctx.font = '10px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('P', p[0], p[1]);
+        });
+    }
+
+    function render() {
+        stageEls.forEach(function(el, i) {
+            var s = stages[i];
+            if (i === idx) {
+                el.style.background = s.color + '15';
+                el.style.borderColor = s.color;
+                el.style.color = s.color;
+            } else {
+                el.style.background = '#f8fafc';
+                el.style.borderColor = 'transparent';
+                el.style.color = '#64748b';
+            }
+        });
+        var s = stages[idx];
+        detailArea.style.background = s.color + '08';
+        detailArea.style.border = '1px solid ' + s.color + '30';
+        detailArea.innerHTML = '<strong style="color:' + s.color + ';">' + s.name + '</strong><br>' + s.detail;
+        drawTeam(idx);
+    }
+
+    var navRow = document.createElement('div');
+    navRow.style.cssText = 'display:flex;gap:10px;';
+    var prevBtn = document.createElement('button');
+    prevBtn.style.cssText = 'padding:4px 14px;border:1px solid #cbd5e1;border-radius:6px;background:#fff;cursor:pointer;font-size:11px;';
+    prevBtn.textContent = '< Prev';
+    prevBtn.addEventListener('click', function() { idx = (idx - 1 + stages.length) % stages.length; render(); });
+    var nextBtn = document.createElement('button');
+    nextBtn.style.cssText = 'padding:4px 14px;border:1px solid #cbd5e1;border-radius:6px;background:#fff;cursor:pointer;font-size:11px;';
+    nextBtn.textContent = 'Next >';
+    nextBtn.addEventListener('click', function() { idx = (idx + 1) % stages.length; render(); });
+    navRow.appendChild(prevBtn);
+    navRow.appendChild(nextBtn);
+    div.appendChild(navRow);
+
+    render();
+};
