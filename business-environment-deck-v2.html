@@ -1,0 +1,2061 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Business Environment — The Systems Deck</title>
+<style>
+:root{
+  --bg:#060913; --panel:#0c1322; --panel2:#101a30; --line:#1b2740;
+  --ink:#e9effb; --muted:#93a1c0; --dim:#5b6a8c;
+  --danger:#ff5c5c;
+  --mono:ui-monospace,"Cascadia Code","JetBrains Mono","SF Mono",Menlo,Consolas,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg); color:var(--ink); font-family:var(--sans);
+  font-size:17px; line-height:1.6; min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+body::before{
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background:
+    radial-gradient(1200px 600px at 80% -10%, rgba(53,224,255,.06), transparent 60%),
+    radial-gradient(900px 500px at 10% 110%, rgba(255,120,71,.05), transparent 60%);
+}
+#app{position:relative; z-index:1; max-width:1060px; margin:0 auto; padding:0 24px 96px}
+button{font:inherit; color:inherit; background:none; border:none; cursor:pointer}
+.mono{font-family:var(--mono)}
+.eyebrow{font-family:var(--mono); font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; color:var(--dim)}
+
+@keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@keyframes riseSoft{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes glowPulse{
+  0%,100%{box-shadow:0 0 0 1px var(--ac), 0 0 18px 0 color-mix(in srgb, var(--ac) 45%, transparent)}
+  50%{box-shadow:0 0 0 1px var(--ac), 0 0 34px 2px color-mix(in srgb, var(--ac) 65%, transparent)}
+}
+@keyframes shake{
+  10%,90%{transform:translateX(-2px)} 20%,80%{transform:translateX(3px)}
+  30%,50%,70%{transform:translateX(-5px)} 40%,60%{transform:translateX(5px)}
+}
+@keyframes scan{from{background-position:0 0}to{background-position:0 48px}}
+@keyframes ringPop{0%{transform:scale(.94)}60%{transform:scale(1.03)}100%{transform:scale(1)}}
+@keyframes blipIn{0%{transform:scale(0);opacity:0}60%{transform:scale(1.5)}100%{transform:scale(1);opacity:1}}
+@keyframes stormSweep{from{transform:translateX(-120%)}to{transform:translateX(320%)}}
+@keyframes spinSlow{to{transform:rotate(360deg)}}
+@keyframes crackle{0%,100%{opacity:.9}50%{opacity:.3}}
+.rise{animation:rise .55s cubic-bezier(.2,.8,.2,1) both}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+
+/* ---------- cover ---------- */
+.cover{min-height:92vh; display:flex; flex-direction:column; justify-content:center; gap:28px; position:relative}
+.cover-grid{
+  position:absolute; inset:-24px; z-index:-1; opacity:.5;
+  background:
+    linear-gradient(transparent 47px, rgba(53,224,255,.05) 48px),
+    linear-gradient(90deg, transparent 47px, rgba(53,224,255,.04) 48px);
+  background-size:48px 48px;
+  mask-image:radial-gradient(70% 70% at 50% 45%, #000 30%, transparent 100%);
+  -webkit-mask-image:radial-gradient(70% 70% at 50% 45%, #000 30%, transparent 100%);
+  animation:scan 6s linear infinite;
+}
+.cover .kicker{color:#35e0ff; font-family:var(--mono); font-size:.8rem; letter-spacing:.22em; text-transform:uppercase}
+.cover h1{font-size:clamp(2.4rem,6vw,4.6rem); font-weight:800; line-height:1.04; letter-spacing:-.02em; text-wrap:balance; max-width:17ch}
+.cover h1 .neon{color:#35e0ff; text-shadow:0 0 24px rgba(53,224,255,.55), 0 0 60px rgba(53,224,255,.25)}
+.cover p.lede{max-width:54ch; color:var(--muted); font-size:1.06rem}
+.cover-stats{display:flex; gap:28px; flex-wrap:wrap; font-family:var(--mono); font-size:.85rem}
+.cover-stats b{display:block; font-size:1.7rem; color:var(--ink); font-weight:700}
+.cover-stats span{color:var(--dim); letter-spacing:.12em; text-transform:uppercase; font-size:.68rem}
+.cta{
+  align-self:flex-start; display:inline-flex; align-items:center; gap:12px;
+  font-family:var(--mono); font-size:.9rem; letter-spacing:.14em; text-transform:uppercase;
+  color:#06131a; background:#35e0ff; padding:15px 26px; border-radius:8px; font-weight:700;
+  box-shadow:0 0 26px rgba(53,224,255,.4); transition:transform .18s, box-shadow .18s;
+}
+.cta:hover{transform:translateY(-2px); box-shadow:0 0 40px rgba(53,224,255,.6)}
+.cta .key{border:1px solid rgba(6,19,26,.4); border-radius:4px; padding:1px 7px; font-size:.72rem}
+.cover .resume{color:var(--muted); font-family:var(--mono); font-size:.8rem}
+.cover .resume b{color:#35e0ff}
+
+/* ---------- top bar ---------- */
+.topbar{
+  position:sticky; top:0; z-index:10; display:flex; align-items:center; gap:16px;
+  padding:14px 4px; margin:0 -4px 8px;
+  background:color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+}
+.topbar .crumb{font-family:var(--mono); font-size:.74rem; letter-spacing:.12em; text-transform:uppercase; color:var(--dim); flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.topbar .crumb b{color:var(--ac,#35e0ff)}
+.iconbtn{
+  font-family:var(--mono); font-size:.72rem; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--muted); border:1px solid var(--line); border-radius:6px; padding:7px 12px;
+  transition:border-color .15s,color .15s; white-space:nowrap;
+}
+.iconbtn:hover{border-color:var(--ac,#35e0ff); color:var(--ink)}
+.progress-rail{height:3px; background:var(--line); border-radius:2px; overflow:hidden; flex:0 0 120px}
+.progress-rail i{display:block; height:100%; background:var(--ac,#35e0ff); border-radius:2px; transition:width .5s cubic-bezier(.2,.8,.2,1)}
+
+/* ---------- hub ---------- */
+.hub-head{padding:56px 0 16px; display:flex; flex-wrap:wrap; align-items:flex-end; gap:24px}
+.hub-head h2{font-size:clamp(1.7rem,3.4vw,2.5rem); font-weight:800; letter-spacing:-.01em; text-wrap:balance}
+.hub-head .overall{margin-left:auto; text-align:right}
+.hub-head .overall .num{font-family:var(--mono); font-size:1.5rem; font-weight:700; color:#35e0ff}
+.hub-head .overall .lbl{font-family:var(--mono); font-size:.66rem; letter-spacing:.16em; text-transform:uppercase; color:var(--dim)}
+.hub-sub{color:var(--muted); max-width:62ch; margin-bottom:34px}
+.hub-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px}
+.tcard{
+  --ac:#35e0ff; position:relative; text-align:left; border:1px solid var(--line); border-radius:14px;
+  background:linear-gradient(180deg, var(--panel2), var(--panel));
+  padding:22px 20px 20px; display:flex; flex-direction:column; gap:12px; overflow:hidden;
+  transition:transform .2s, border-color .2s, box-shadow .2s;
+}
+.tcard:hover{transform:translateY(-3px); border-color:color-mix(in srgb, var(--ac) 55%, var(--line)); box-shadow:0 12px 34px -14px color-mix(in srgb, var(--ac) 40%, transparent)}
+.tcard .tno{font-family:var(--mono); font-size:.7rem; letter-spacing:.2em; color:var(--ac)}
+.tcard h3{font-size:1.22rem; font-weight:750; letter-spacing:-.01em; line-height:1.25; text-wrap:balance}
+.tcard p{font-size:.88rem; color:var(--muted); flex:1}
+.tcard .tfoot{display:flex; align-items:center; gap:10px; font-family:var(--mono); font-size:.72rem; color:var(--dim)}
+.tcard .ring{margin-left:auto}
+.tcard.done{border-color:color-mix(in srgb, var(--ac) 45%, var(--line))}
+.tcard .chip{font-family:var(--mono); font-size:.62rem; letter-spacing:.16em; text-transform:uppercase; color:#06131a; background:var(--ac); border-radius:4px; padding:2px 8px; font-weight:700}
+.ring{width:44px; height:44px; flex:none}
+.ring svg{width:100%; height:100%; transform:rotate(-90deg)}
+.ring .bgc{stroke:var(--line); fill:none; stroke-width:4}
+.ring .fgc{stroke:var(--ac); fill:none; stroke-width:4; stroke-linecap:round; transition:stroke-dashoffset .6s cubic-bezier(.2,.8,.2,1)}
+.sheet-link{
+  margin-top:22px; display:flex; align-items:center; justify-content:space-between; gap:16px;
+  border:1px dashed var(--line); border-radius:14px; padding:18px 20px; width:100%;
+  font-family:var(--mono); font-size:.82rem; letter-spacing:.1em; color:var(--muted);
+  transition:border-color .2s,color .2s;
+}
+.sheet-link:hover{border-color:#35e0ff; color:var(--ink)}
+.sheet-link .arr{color:#35e0ff}
+
+/* ---------- theme page ---------- */
+.tintro{padding:48px 0 0}
+.tintro .tno{font-family:var(--mono); letter-spacing:.22em; font-size:.78rem; color:var(--ac)}
+.tintro h2{font-size:clamp(1.9rem,4.5vw,3.1rem); font-weight:800; letter-spacing:-.015em; margin:10px 0 12px; text-wrap:balance}
+.tintro .tag{color:var(--muted); max-width:58ch; font-size:1.04rem}
+.primer{
+  margin:30px 0; border:1px solid var(--line); border-radius:14px; overflow:hidden;
+  background:linear-gradient(180deg, var(--panel2), var(--panel));
+}
+.primer-head{padding:14px 20px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:12px}
+.primer-head .eyebrow{color:var(--ac)}
+.primer-body{padding:20px}
+.tintro ol{list-style:none; margin:30px 0; display:flex; flex-direction:column; gap:8px}
+.tintro li button{
+  width:100%; text-align:left; display:flex; align-items:center; gap:14px;
+  border:1px solid var(--line); border-radius:10px; padding:13px 16px;
+  background:var(--panel); transition:border-color .15s, transform .15s;
+}
+.tintro li button:hover{border-color:var(--ac); transform:translateX(4px)}
+.tintro .cno{font-family:var(--mono); font-size:.72rem; color:var(--dim); flex:none}
+.tintro .cname{font-weight:600; flex:1}
+.tintro .cmech{font-family:var(--mono); font-size:.62rem; letter-spacing:.12em; text-transform:uppercase; color:var(--dim); border:1px solid var(--line); border-radius:4px; padding:2px 7px}
+.tintro .cstate{font-family:var(--mono); font-size:.68rem; letter-spacing:.14em; text-transform:uppercase; color:var(--dim)}
+.tintro .cstate.ok{color:var(--ac)}
+
+/* ---------- concept page ---------- */
+.concept{padding-top:36px}
+.concept .chead h2{font-size:clamp(1.5rem,3.4vw,2.2rem); font-weight:800; letter-spacing:-.01em; margin-top:6px; text-wrap:balance}
+.concept .lede{color:var(--muted); max-width:66ch; margin:12px 0 16px}
+.found-row{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:22px}
+.found-chip{
+  font-family:var(--mono); font-size:.68rem; letter-spacing:.1em; text-transform:uppercase;
+  border:1px dashed color-mix(in srgb, var(--ac) 50%, var(--line)); color:var(--ac);
+  border-radius:20px; padding:4px 12px; transition:background .15s;
+}
+.found-chip:hover{background:color-mix(in srgb, var(--ac) 10%, transparent)}
+.found-pop{
+  border:1px solid color-mix(in srgb, var(--ac) 40%, var(--line)); border-radius:12px;
+  background:var(--panel2); padding:14px 18px; margin-bottom:18px; max-width:72ch;
+  animation:riseSoft .3s cubic-bezier(.2,.8,.2,1) both;
+}
+.found-pop .eyebrow{color:var(--ac); display:block; margin-bottom:4px}
+.found-pop p{font-size:.9rem; color:var(--muted)}
+
+/* stage frame */
+.stage{border:1px solid var(--line); border-radius:16px; background:var(--panel); overflow:hidden}
+.stage-head{display:flex; align-items:center; gap:10px; padding:12px 18px; border-bottom:1px solid var(--line)}
+.stage-head .eyebrow{color:var(--ac)}
+.stage-head .mech{margin-left:auto; font-family:var(--mono); font-size:.62rem; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); border:1px solid var(--line); border-radius:4px; padding:2px 8px}
+.scene{padding:26px 22px; min-height:200px; position:relative}
+.stage-caption{
+  min-height:56px; padding:12px 18px; border-top:1px solid var(--line);
+  font-size:.92rem; color:var(--muted); background:var(--panel2);
+}
+.stage-caption b{color:var(--ac)}
+.stage-caption.flash{animation:riseSoft .3s both}
+.stage-controls{display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding:12px 18px; border-top:1px solid var(--line)}
+.stepbtn,.actbtn{
+  font-family:var(--mono); font-size:.76rem; letter-spacing:.12em; text-transform:uppercase;
+  border:1px solid var(--ac); color:var(--ac); border-radius:8px; padding:10px 18px; font-weight:700;
+  transition:all .18s;
+}
+.stepbtn:hover,.actbtn:hover{background:var(--ac); color:#06131a; box-shadow:0 0 20px color-mix(in srgb, var(--ac) 50%, transparent)}
+.actbtn.ghostly{border-color:var(--line); color:var(--dim)}
+.actbtn.hidden,.stepbtn.hidden{display:none}
+.actbtn.danger{border-color:color-mix(in srgb, var(--danger) 60%, var(--line)); color:var(--danger)}
+.actbtn.danger:hover{background:var(--danger); color:#06131a; box-shadow:none}
+.step-pips{display:flex; gap:5px; margin-left:auto}
+.step-pips i{width:6px; height:6px; border-radius:50%; background:var(--line); transition:background .2s}
+.step-pips i.on{background:var(--ac)}
+
+/* scene primitives */
+.srow{display:flex; gap:12px; flex-wrap:wrap; align-items:stretch; margin:10px 0}
+.scol{display:flex; flex-direction:column; gap:10px}
+.center{justify-content:center; align-items:center}
+.nbox{
+  border:1px solid var(--line); border-radius:10px; background:var(--panel2);
+  padding:10px 14px; font-size:.85rem; position:relative; transition:all .35s;
+  min-width:110px;
+}
+.nbox .nb-t{font-weight:650; font-size:.88rem}
+.nbox .nb-s{font-family:var(--mono); font-size:.64rem; letter-spacing:.1em; text-transform:uppercase; color:var(--dim); display:block; margin-top:2px}
+.nbox.on{border-color:var(--ac); box-shadow:0 0 16px -4px color-mix(in srgb, var(--ac) 55%, transparent)}
+.nbox.on .nb-s{color:var(--ac)}
+.nbox.off{opacity:.32; filter:saturate(.4)}
+.nbox.bad{border-color:var(--danger)}
+.nbox.bad .nb-s{color:var(--danger)}
+.nbox.fizzle{animation:shake .45s}
+.arrowc{align-self:center; color:var(--dim); font-family:var(--mono); transition:color .35s}
+.arrowc.on{color:var(--ac); text-shadow:0 0 12px var(--ac)}
+.sbadge{
+  font-family:var(--mono); font-size:.58rem; letter-spacing:.14em; text-transform:uppercase;
+  border-radius:4px; padding:1px 7px; display:inline-block; margin-top:6px;
+  border:1px solid var(--line); color:var(--dim); transition:all .35s;
+}
+.sbadge.raw{border-color:color-mix(in srgb, var(--danger) 55%, var(--line)); color:var(--danger)}
+.sbadge.val{border-color:var(--ac); color:var(--ac)}
+[data-show]{opacity:0; transform:translateY(10px); transition:opacity .45s, transform .45s}
+[data-show].shown{opacity:1; transform:none}
+[data-when]{opacity:0; transform:translateY(8px); transition:opacity .4s, transform .4s; pointer-events:none}
+[data-when].shown{opacity:1; transform:none; pointer-events:auto}
+.meter{height:10px; border-radius:6px; background:var(--line); overflow:hidden; position:relative}
+.meter i{position:absolute; inset:0 auto 0 0; width:0%; background:var(--ac); border-radius:6px; transition:width .5s cubic-bezier(.2,.8,.2,1)}
+.meter.danger i{background:var(--danger)}
+.meter .thresh{position:absolute; top:-4px; bottom:-4px; width:2px; background:var(--danger); box-shadow:0 0 8px var(--danger)}
+.mlabel{font-family:var(--mono); font-size:.64rem; letter-spacing:.12em; text-transform:uppercase; color:var(--dim); margin-bottom:5px; display:flex; justify-content:space-between}
+.mlabel b{color:var(--ink)}
+
+/* tokens & zones */
+.token{
+  font-family:var(--mono); font-size:.74rem; letter-spacing:.06em;
+  border:1px solid var(--ac); color:var(--ink); background:color-mix(in srgb, var(--ac) 12%, var(--panel2));
+  border-radius:10px; padding:9px 14px; cursor:grab; user-select:none; -webkit-user-select:none;
+  touch-action:none; position:relative; transition:box-shadow .2s, opacity .3s; font-weight:600;
+}
+.token::before{content:"⠿ "; color:var(--ac)}
+.token:active{cursor:grabbing}
+.token.dragging{opacity:.9; box-shadow:0 8px 30px -6px color-mix(in srgb, var(--ac) 60%, transparent); z-index:40}
+.token.placed{cursor:default; border-style:solid; animation:ringPop .4s}
+.token.placed::before{content:"◆ "}
+.token.spent{opacity:.35; cursor:default}
+.zone{
+  border:1.5px dashed var(--line); border-radius:12px; padding:12px 14px; min-height:64px;
+  display:flex; flex-direction:column; gap:8px; transition:all .25s; flex:1; min-width:150px;
+}
+.zone .zlabel{font-family:var(--mono); font-size:.66rem; letter-spacing:.14em; text-transform:uppercase; color:var(--dim)}
+.zone .zsub{font-size:.76rem; color:var(--dim)}
+.zone.hot{border-color:var(--ac); background:color-mix(in srgb, var(--ac) 7%, transparent)}
+.zone.ok{border-style:solid; border-color:var(--ac); box-shadow:0 0 18px -6px color-mix(in srgb, var(--ac) 55%, transparent)}
+.zone.ok .zlabel{color:var(--ac)}
+.zone.bad{border-color:var(--danger); animation:shake .45s}
+.token-tray{display:flex; gap:10px; flex-wrap:wrap; padding:12px; border:1px solid var(--line); border-radius:12px; background:var(--bg); margin-bottom:14px}
+.tray-label{font-family:var(--mono); font-size:.62rem; letter-spacing:.16em; text-transform:uppercase; color:var(--dim); width:100%}
+
+/* toggle worlds */
+.world-switch{display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap}
+.wbtn{
+  font-family:var(--mono); font-size:.72rem; letter-spacing:.1em; text-transform:uppercase;
+  border:1px solid var(--line); color:var(--muted); border-radius:8px; padding:9px 16px; transition:all .2s;
+}
+.wbtn.cur{border-color:var(--ac); color:var(--ac); background:color-mix(in srgb, var(--ac) 9%, transparent)}
+.wbtn .visited{color:var(--dim); font-size:.6rem}
+
+/* sliders */
+.sldwrap{margin:14px 0}
+input[type=range]{
+  width:100%; appearance:none; -webkit-appearance:none; height:6px; border-radius:4px;
+  background:var(--line); outline:none;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none; width:26px; height:26px; border-radius:50%;
+  background:var(--ac); border:3px solid var(--bg); box-shadow:0 0 14px color-mix(in srgb, var(--ac) 60%, transparent);
+  cursor:grab;
+}
+input[type=range]::-moz-range-thumb{
+  width:22px; height:22px; border-radius:50%; background:var(--ac); border:3px solid var(--bg);
+  box-shadow:0 0 14px color-mix(in srgb, var(--ac) 60%, transparent); cursor:grab;
+}
+.sld-marks{display:flex; justify-content:space-between; font-family:var(--mono); font-size:.62rem; color:var(--dim); margin-top:6px; letter-spacing:.08em}
+
+/* misc scene bits */
+.cardlet{
+  border:1px solid var(--line); border-radius:10px; background:var(--panel2); padding:10px 12px;
+  font-size:.8rem; transition:all .35s; position:relative;
+}
+.cardlet .cl-t{font-weight:650}
+.cardlet .cl-s{font-family:var(--mono); font-size:.62rem; color:var(--dim); letter-spacing:.08em; text-transform:uppercase}
+.cardlet.on{border-color:var(--ac)}
+.cardlet.lit{border-color:var(--ac); box-shadow:0 0 14px -4px color-mix(in srgb, var(--ac) 50%, transparent)}
+.cardlet.dead{opacity:.3}
+.blip{width:10px; height:10px; border-radius:50%; background:var(--ac); box-shadow:0 0 10px var(--ac); display:inline-block; animation:blipIn .5s both}
+.blip.missed{background:var(--danger); box-shadow:0 0 10px var(--danger)}
+.ticker{font-family:var(--mono); font-size:.7rem; letter-spacing:.1em; color:var(--danger); text-transform:uppercase}
+.ticker.calm{color:var(--ac)}
+.gatelock{font-family:var(--mono); font-size:.66rem; color:var(--dim); border:1px dashed var(--line); border-radius:8px; padding:6px 10px; letter-spacing:.1em; text-transform:uppercase}
+.gatelock.open{border-color:var(--ac); color:var(--ac); border-style:solid}
+svg text{font-family:var(--mono)}
+
+/* recall beat + reveal */
+.recall{
+  margin-top:22px; border:1px dashed color-mix(in srgb, var(--ac) 55%, var(--line)); border-radius:14px;
+  padding:22px; text-align:center; animation:rise .5s both;
+}
+.recall .eyebrow{color:var(--ac); display:block; margin-bottom:8px}
+.recall p{color:var(--muted); max-width:52ch; margin:0 auto 16px}
+.reveal{margin-top:22px; display:grid; gap:14px}
+@media(min-width:760px){.reveal{grid-template-columns:1fr 1fr}}
+.rulecard,.trapcard{border-radius:14px; padding:20px 22px}
+.rulecard{
+  border:1px solid var(--ac);
+  background:linear-gradient(180deg, color-mix(in srgb, var(--ac) 10%, var(--panel)), var(--panel));
+  box-shadow:0 0 30px -8px color-mix(in srgb, var(--ac) 35%, transparent);
+  animation:rise .5s both;
+}
+.rulecard .eyebrow{color:var(--ac); margin-bottom:8px; display:block}
+.rulecard p{font-size:1.04rem; font-weight:600; line-height:1.5}
+.trapcard{border:1px solid color-mix(in srgb, var(--danger) 40%, var(--line)); background:var(--panel); animation:rise .5s .1s both}
+.trapcard .eyebrow{color:var(--danger); margin-bottom:8px; display:block}
+.trapcard p{font-size:.94rem; color:var(--muted)}
+.cnav{display:flex; align-items:center; gap:12px; margin-top:34px; border-top:1px solid var(--line); padding-top:20px}
+.cnav .spacer{flex:1}
+.navbtn{
+  font-family:var(--mono); font-size:.78rem; letter-spacing:.12em; text-transform:uppercase;
+  border:1px solid var(--line); border-radius:8px; padding:11px 18px; color:var(--muted); transition:all .18s;
+}
+.navbtn:hover{border-color:var(--ac); color:var(--ink)}
+.navbtn.primary{color:#06131a; background:var(--ac); border-color:var(--ac); font-weight:700}
+.navbtn.primary:hover{box-shadow:0 0 22px color-mix(in srgb, var(--ac) 50%, transparent)}
+.navbtn.pulse{animation:glowPulse 2s ease-in-out infinite}
+.dots{display:flex; gap:6px; align-items:center}
+.dots i{width:7px; height:7px; border-radius:50%; background:var(--line); transition:background .2s}
+.dots i.on{background:var(--ac)}
+.dots i.cur{outline:2px solid var(--ac); outline-offset:2px}
+
+/* cheat sheet */
+.sheet{padding-top:48px}
+.sheet h2{font-size:clamp(1.8rem,4vw,2.7rem); font-weight:800; letter-spacing:-.015em; margin:8px 0 6px}
+.sheet .sub{color:var(--muted); max-width:60ch; margin-bottom:8px}
+.sheet-actions{display:flex; gap:10px; margin:20px 0 34px}
+.sheet-theme{margin-bottom:30px; break-inside:avoid}
+.sheet-theme h3{
+  font-size:1.05rem; font-weight:750; display:flex; gap:12px; align-items:baseline;
+  border-bottom:1px solid var(--line); padding-bottom:8px; margin-bottom:14px;
+}
+.sheet-theme h3 .tno{font-family:var(--mono); font-size:.7rem; letter-spacing:.18em; color:var(--ac)}
+.sheet-theme ul{list-style:none; display:flex; flex-direction:column; gap:10px}
+.sheet-theme li{display:flex; gap:12px; align-items:flex-start; max-width:80ch}
+.sheet-theme li::before{content:"▸"; color:var(--ac); flex:none; font-size:.8rem; margin-top:3px}
+.sheet-theme li b{font-weight:650}
+.sheet-theme li span{color:var(--muted)}
+@media print{
+  body{background:#fff; color:#111; font-size:11.5px}
+  body::before,.topbar,.sheet-actions,.no-print{display:none!important}
+  #app{max-width:none; padding:0}
+  .sheet-theme li span{color:#444}
+  .sheet-theme h3{border-color:#ccc}
+  .sheet-theme h3 .tno,.sheet-theme li::before{color:#111}
+  .sheet h2{font-size:20px} .sheet .sub{color:#444}
+}
+@media(max-width:640px){
+  body{font-size:16px}
+  .progress-rail{flex-basis:64px}
+  .cover-stats{gap:18px}
+  .cnav{flex-wrap:wrap}
+  .dots{display:none}
+  .scene{padding:18px 14px}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+/* =============== FOUNDATIONS (inline expandable) =============== */
+const FOUNDATIONS = {
+  opa:["Organizational Process Assets (OPAs)","Everything the organization owns to run projects: plans, policies, procedures, templates, checklists — and its knowledge repositories. OPAs are inputs to almost every process, and the exam treats them as the authoritative, validated source."],
+  eef:["Enterprise Environmental Factors (EEFs)","Conditions the project doesn't control but must operate within: organizational culture and structure, workforce readiness, regulations, market conditions. You review EEFs to understand the terrain; you consult OPAs for how the organization works."],
+  regrepo:["Register vs. repository","The lessons learned register is raw and project-level — lessons captured as they happen. The knowledge repository is organizational — the PMO validates and formalizes register content into it. Raw in the register, authoritative in the repository."],
+  cc:["Change control in one line","Documented request → change log → impact assessment → Change Control Board decides → only then do plans and baselines update. Anything touching scope, cost, or schedule in a predictive environment rides this pipeline."],
+  ccb:["Change Control Board (CCB)","The body that approves or rejects change requests based on impact, compliance, strategic alignment, and risk. Project managers submit and assess; the CCB decides — that separation protects governance integrity."],
+  baseline:["Baselines","The approved versions of scope, schedule, and cost against which performance is measured. Nobody — including the PM — edits a baseline directly. Baselines move only through approved change requests."],
+  thresh:["Governance thresholds","The governance plan pre-defines variance limits. Inside the limits, the PM manages: monitor, correct, report. Crossing them is a tripwire: the issue must enter formal governance, and rebaselining needs approval."],
+  riskdocs:["Risk plan vs. risk register","The risk management plan defines the approach — methodology, roles, categories, thresholds. It's stable. The risk register is the living log of actual identified risks. New risk discovered → register, not plan."],
+  qq:["Qualitative vs. quantitative","Qualitative analysis rates every risk on probability × impact — fast triage that produces a priority ranking. Quantitative analysis numerically models only the high-priority survivors (e.g., Monte Carlo). Order is fixed: qualitative first."],
+  reserves:["Reserves","Contingency reserves cover identified risks and are sized by quantitative analysis — you can't ask for a number before the math exists. Management reserves cover true unknowns and sit outside the baseline."],
+  leadlag:["Leading vs. lagging indicators","A leading indicator fires before the damage (team engagement dropping) — it predicts. A lagging indicator fires after (defect density, customer complaints) — it explains. To anticipate risk, govern with leading indicators."],
+  govplan:["Governance plan vs. execution","The governance plan is design: decision rights, escalation paths, compliance validation, thresholds. Training, audits, and meetings are execution — they deliver the design. Governance questions want design elements."],
+  altitude:["Decision altitude","Project-level decisions (applying lessons, aligning stakeholders, running change control) belong to the PM. Organizational and strategic decisions (technology pivots, acquisitions, portfolio direction) require sponsor and executive direction first."],
+  culture:["Culture is an EEF","An organization's culture — its tolerance for uncertainty, hierarchy, formality — is an enterprise environmental factor. You don't overpower an EEF with process; you adapt your leadership style to it."]
+};
+
+/* =============== HELPERS =============== */
+const esc = s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+
+function applyStage(scene, s){
+  scene.dataset.stage = s;
+  scene.querySelectorAll("[data-on]").forEach(el=>el.classList.toggle("on", s >= +el.dataset.on));
+  scene.querySelectorAll("[data-off]").forEach(el=>el.classList.toggle("off", s >= +el.dataset.off));
+  scene.querySelectorAll("[data-show]").forEach(el=>el.classList.toggle("shown", s >= +el.dataset.show));
+}
+/* step-through engine: captions[0] = intro; steps 1..N ; complete at last */
+function stepper(api, captions, opts={}){
+  let s = 0; const last = captions.length-1;
+  applyStage(api.scene, 0);
+  api.caption(captions[0]);
+  const pips = captions.map((_,i)=>`<i class="${i===0?"on":""}"></i>`).join("");
+  api.ctrl.innerHTML = `<button class="stepbtn" data-act="step">${opts.label||"Next step"} →</button><span class="step-pips">${pips}</span>`;
+  api.ctrl.querySelector("[data-act=step]").addEventListener("click", ()=>{
+    if(s>=last) return;
+    s++; applyStage(api.scene, s); api.caption(captions[s]);
+    api.ctrl.querySelectorAll(".step-pips i").forEach((p,i)=>p.classList.toggle("on", i<=s));
+    if(s===last){
+      api.ctrl.querySelector("[data-act=step]").classList.add("hidden");
+      api.complete();
+    }
+  });
+}
+/* enforced-order tap engine: nodes carry data-node ; order = ids in causal order */
+function seq(api, {order, good, fizzle, done}){
+  let idx = 0;
+  api.scene.querySelectorAll("[data-node]").forEach(n=>{
+    n.style.cursor = "pointer";
+    n.addEventListener("click", ()=>{
+      const id = n.dataset.node;
+      if(n.classList.contains("on")) return;
+      if(id === order[idx]){
+        n.classList.add("on");
+        api.caption(good[id]||"");
+        idx++;
+        if(idx===order.length){ if(done) done(); api.complete(); }
+      }else{
+        n.classList.add("fizzle","bad");
+        setTimeout(()=>n.classList.remove("fizzle","bad"), 700);
+        api.caption(fizzle[id]||"Not yet — something upstream has to happen first.");
+      }
+    });
+  });
+}
+/* drag engine (pointer events; touch-friendly) */
+function dragger(api, {pairs, captions, required, onPlace}){
+  const placedSet = new Set();
+  api.scene.querySelectorAll(".token").forEach(tok=>{
+    tok.addEventListener("pointerdown", e=>{
+      if(tok.classList.contains("placed")||tok.classList.contains("spent")) return;
+      e.preventDefault();
+      tok.setPointerCapture(e.pointerId);
+      tok.classList.add("dragging");
+      const sx = e.clientX, sy = e.clientY;
+      tok.style.zIndex = 50;
+      let hotZone = null;
+      const move = ev=>{
+        /* transform keeps the token in flow — no layout shift while dragging */
+        tok.style.transform = `translate(${ev.clientX-sx}px, ${ev.clientY-sy}px)`;
+        tok.style.visibility = "hidden";
+        const under = document.elementFromPoint(ev.clientX, ev.clientY);
+        tok.style.visibility = "";
+        const z = under && under.closest ? under.closest("[data-zone]") : null;
+        if(hotZone && hotZone!==z) hotZone.classList.remove("hot");
+        hotZone = z; if(z) z.classList.add("hot");
+      };
+      const up = ev=>{
+        tok.releasePointerCapture(e.pointerId);
+        tok.removeEventListener("pointermove", move);
+        tok.removeEventListener("pointerup", up);
+        tok.classList.remove("dragging");
+        tok.style.zIndex=""; tok.style.transform="";
+        if(hotZone) hotZone.classList.remove("hot");
+        if(!hotZone) return;
+        const t = tok.dataset.token, z = hotZone.dataset.zone;
+        const key = t+">"+z;
+        const ok = pairs[t]===z;
+        if(captions[key]) api.caption(captions[key]);
+        else if(captions[">"+z]) api.caption(captions[">"+z]);
+        if(ok){
+          hotZone.classList.add("ok");
+          const slot = hotZone.querySelector(".zslot")||hotZone;
+          slot.appendChild(tok);
+          tok.classList.add("placed");
+          placedSet.add(t);
+          if(onPlace) onPlace(t, z, true);
+          if(required.every(x=>placedSet.has(x))) api.complete();
+        }else{
+          hotZone.classList.add("bad");
+          setTimeout(()=>hotZone.classList.remove("bad"), 700);
+          if(onPlace) onPlace(t, z, false);
+        }
+      };
+      tok.addEventListener("pointermove", move);
+      tok.addEventListener("pointerup", up);
+    });
+  });
+}
+/* world-toggle engine: visit all states; lock in on `final` */
+function toggler(api, {states, final, intro}){
+  const visited = new Set();
+  let cur = null;
+  const sw = document.createElement("div");
+  sw.className = "world-switch";
+  sw.innerHTML = states.map(s=>`<button class="wbtn" data-w="${s.id}">${esc(s.label)}</button>`).join("");
+  api.scene.prepend(sw);
+  api.caption(intro);
+  function setState(id){
+    cur = id; visited.add(id);
+    api.scene.dataset.state = id;
+    api.scene.querySelectorAll("[data-when]").forEach(el=>{
+      el.classList.toggle("shown", el.dataset.when.split(" ").includes(id));
+    });
+    sw.querySelectorAll(".wbtn").forEach(b=>b.classList.toggle("cur", b.dataset.w===id));
+    const st = states.find(s=>s.id===id);
+    api.caption(st.caption);
+    const lockBtn = api.ctrl.querySelector("[data-act=lock]");
+    if(visited.size===states.length){
+      if(!lockBtn){
+        api.ctrl.insertAdjacentHTML("afterbegin", `<button class="actbtn" data-act="lock">Lock in: ${esc(states.find(s=>s.id===final).label)}</button>`);
+        api.ctrl.querySelector("[data-act=lock]").addEventListener("click", ()=>{
+          if(cur!==final) setState(final);
+          api.ctrl.querySelector("[data-act=lock]").classList.add("hidden");
+          api.complete();
+        });
+      }
+    }
+  }
+  sw.querySelectorAll(".wbtn").forEach(b=>b.addEventListener("click", ()=>setState(b.dataset.w)));
+  api.ctrl.innerHTML = "";
+  setState(states[0].id);
+}
+
+/* =============== THEME + CONCEPT DATA =============== */
+/* Each concept: {title, mech, lede, found[], html, wire(api), rule, trap} */
+const THEMES = [
+
+/* ================= THEME 1 : KNOWLEDGE LOOP ================= */
+{
+  id:"loop", color:"#35e0ff", title:"The Knowledge Loop",
+  tag:"How knowledge becomes authoritative — and how project insight is fed back so the organization actually learns.",
+  primer:{
+    title:"How a lesson becomes a standard",
+    html:`<div class="srow center">
+      <div class="nbox" data-on="1"><span class="nb-t">Retro / project notes</span><span class="nb-s">raw capture</span><span class="sbadge raw" data-show="1">unvalidated</span></div>
+      <span class="arrowc" data-on="2">→</span>
+      <div class="nbox" data-on="2"><span class="nb-t">Lessons learned register</span><span class="nb-s">this project</span><span class="sbadge raw" data-show="2">still raw</span></div>
+      <span class="arrowc" data-on="3">→</span>
+      <div class="nbox" data-on="3"><span class="nb-t">PMO validation</span><span class="nb-s">review · formalize</span></div>
+      <span class="arrowc" data-on="4">→</span>
+      <div class="nbox" data-on="4"><span class="nb-t">Knowledge repository</span><span class="nb-s">organizational OPA</span><span class="sbadge val" data-show="4">authoritative</span></div>
+      <span class="arrowc" data-on="5">→</span>
+      <div class="nbox" data-on="5"><span class="nb-t">Every future project</span><span class="nb-s">pulls validated standards</span></div>
+    </div>`,
+    wire(api){ stepper(api,[
+      "This is the pipeline behind the whole theme. Step through it once — every concept here is a place where a PM either respects this pipeline or breaks it.",
+      "Knowledge is born raw: someone notices something in a retro or a status meeting. At this point it's an anecdote.",
+      "It lands in the <b>lessons learned register</b> — still raw, still project-scoped. Useful, but not yet something the organization vouches for.",
+      "The <b>PMO validates</b>: cross-checks against other projects, formalizes, generalizes. This is the step people forget exists.",
+      "Only now does it enter the <b>knowledge repository</b> — an organizational process asset. This is where 'current organizational standards' live.",
+      "And this is where every new project should <b>pull from</b> — not from registers, archives, or one department's binder. Pipeline complete."
+    ]); }
+  },
+  concepts:[
+  { title:"The Authoritative Source", mech:"flow",
+    lede:"You're building a project management plan and want it to reflect the organization's most current standards. Four sources sit in front of you — but only one of them is the organization actually speaking. Trace what each source really contains.",
+    found:["opa","regrepo"],
+    html:`<div class="srow">
+      <div class="nbox" data-on="1"><span class="nb-t">Lessons learned register</span><span class="nb-s">project-level</span><span class="sbadge raw" data-show="1">raw lessons</span></div>
+      <div class="nbox" data-on="2"><span class="nb-t">Old project archive</span><span class="nb-s">historical files</span><span class="sbadge raw" data-show="2">raw data</span></div>
+      <div class="nbox" data-on="3"><span class="nb-t">Department procedures</span><span class="nb-s">one function's view</span><span class="sbadge raw" data-show="3">local only</span></div>
+      <div class="nbox" data-on="4"><span class="nb-t">Knowledge repository</span><span class="nb-s">organizational OPA</span><span class="sbadge val" data-show="4">validated ✓</span></div>
+    </div>
+    <div class="srow center" data-show="5">
+      <div class="nbox on"><span class="nb-t">Your project management plan</span><span class="nb-s">← pulls updated, institutionalized standards</span></div>
+    </div>`,
+    wire(api){ stepper(api,[
+      "Four candidate sources. Step through each one and read its true label.",
+      "The <b>lessons learned register</b> holds raw, current-project lessons. Nothing in it has been validated by the organization. It's an input to standards — never the standard.",
+      "The <b>project archive</b> is historical raw data. What worked on that project was never institutionalized for yours.",
+      "<b>Departmental procedures</b> are one function's local view. Organizational standards must come from organizational assets, not a single silo.",
+      "The <b>knowledge repository</b> is where the PMO publishes validated, continuously-improved processes. It is the organization's authoritative voice.",
+      "So the plan pulls from the repository. One source glows; three wear warning labels. That contrast is the whole lesson."
+    ]); },
+    rule:"Current organizational standards live in the knowledge repository — an OPA. Registers hold raw lessons, archives hold raw data, departments hold local views.",
+    trap:"'Lessons learned register' sounds like the home of improvements. It stores unvalidated, project-level lessons — only after the PMO formalizes them do they become organizational standards."
+  },
+  { title:"Close the Loop", mech:"machine",
+    lede:"The organization already knew: repository insights document this vendor's delay pattern from past projects — and it's happening again on yours. Knowledge that never lands in a controlling artifact changes nothing. Drag the insight to where it actually closes the loop.",
+    found:["opa","cc"],
+    html:`<div class="token-tray"><span class="tray-label">In your hand</span>
+      <button class="token" data-token="insight">Repository insight: vendor delay pattern</button></div>
+    <div class="srow">
+      <div class="zone" data-zone="report"><span class="zlabel">Final project report</span><span class="zsub">documents it… for readers, later</span><div class="zslot"></div></div>
+      <div class="zone" data-zone="sponsor"><span class="zlabel">Sponsor's desk</span><span class="zsub">escalate for intervention</span><div class="zslot"></div></div>
+      <div class="zone" data-zone="meetings"><span class="zlabel">More status meetings</span><span class="zsub">increase oversight</span><div class="zslot"></div></div>
+      <div class="zone" data-zone="plan"><span class="zlabel">Change request → procurement plan</span><span class="zsub">rewrite vendor management practices</span><div class="zslot"></div></div>
+    </div>
+    <div class="srow"><div style="flex:1">
+      <div class="mlabel"><span>Schedule slippage</span><b id="c2-tick">continuing…</b></div>
+      <div class="meter danger" id="c2-meter"><i style="width:64%"></i></div>
+    </div></div>`,
+    wire(api){
+      api.caption("The slippage meter runs until the insight lands somewhere that changes vendor behavior. Try any destination — each one animates its real consequence.");
+      dragger(api,{
+        pairs:{insight:"plan"}, required:["insight"],
+        captions:{
+          "insight>report":"Filed. The report will inform someone, someday. Meanwhile the meter keeps climbing — documentation is not prevention.",
+          "insight>sponsor":"It bounces back with a note: <b>applying lessons learned is the PM's job</b>. Escalation hands your responsibility upward and fixes nothing.",
+          "insight>meetings":"Now you watch the delays more often. Oversight intensity ≠ changed vendor practices. The meter doesn't care how many meetings observe it.",
+          "insight>plan":"<b>Loop closed.</b> The insight enters the artifact that governs vendor behavior — through formal change control. Systemic fix, not a patch."
+        },
+        onPlace(t,z,ok){
+          if(ok){
+            const m=document.getElementById("c2-meter"), k=document.getElementById("c2-tick");
+            m.classList.remove("danger"); m.querySelector("i").style.width="12%";
+            k.textContent="contained"; k.parentElement.parentElement.querySelector(".mlabel b").style.color="var(--ac)";
+          }
+        }
+      });
+    },
+    rule:"Apply repository insight by formally changing the plan that governs the problem. Watching harder or reporting later never fixes practices.",
+    trap:"Escalating and adding meetings both feel proactive. Neither one changes the controlling artifact — the exam reads both as avoidance."
+  },
+  { title:"Institutionalize It", mech:"machine",
+    lede:"Your team built a compliance checklist that cut documentation errors dramatically. Right now it exists in exactly one place: your project. Whether it ever helps anyone else depends entirely on where you put it. Drag it to each home and watch its reach.",
+    found:["opa"],
+    html:`<div class="token-tray"><span class="tray-label">The improvement</span>
+      <button class="token" data-token="cl">Checklist v2 — error rate −68%</button></div>
+    <div class="srow">
+      <div class="zone" data-zone="proj"><span class="zlabel">Project repository</span><span class="zsub">your team only</span><div class="zslot"></div></div>
+      <div class="zone" data-zone="peers"><span class="zlabel">Peer DMs</span><span class="zsub">share informally</span><div class="zslot"></div></div>
+      <div class="zone" data-zone="stamp"><span class="zlabel">Sponsor approval</span><span class="zsub">get it blessed</span><div class="zslot"></div></div>
+      <div class="zone" data-zone="qrepo"><span class="zlabel">Org quality repository</span><span class="zsub">standard resource</span><div class="zslot"></div></div>
+    </div>
+    <div class="srow" id="c3-grid">
+      <span class="tray-label">Future projects (watch who can find it)</span>
+      <div class="cardlet dead" data-fp><span class="cl-t">Project F-12</span><span class="cl-s">next quarter</span></div>
+      <div class="cardlet dead" data-fp><span class="cl-t">Project F-13</span><span class="cl-s">next quarter</span></div>
+      <div class="cardlet dead" data-fp><span class="cl-t">Project F-14</span><span class="cl-s">next year</span></div>
+      <div class="cardlet dead" data-fp><span class="cl-t">Project F-15</span><span class="cl-s">next year</span></div>
+      <div class="cardlet dead" data-fp><span class="cl-t">Project F-16</span><span class="cl-s">unstaffed</span></div>
+    </div>`,
+    wire(api){
+      api.caption("Five future projects wait below, dark. Drop the checklist into each destination and see which one lights them up.");
+      dragger(api,{
+        pairs:{cl:"qrepo"}, required:["cl"],
+        captions:{
+          "cl>proj":"Safe and findable — by the five people who already know it exists. The future projects stay dark: organizational learning never happens.",
+          "cl>peers":"Two peers hear about it. One forgets, one leaves next quarter. Informal sharing spreads knowledge; it doesn't institutionalize it.",
+          "cl>stamp":"Stamped: <b>APPROVED</b>. And… stored nowhere. Authority is not implementation — a blessing doesn't update process assets.",
+          "cl>qrepo":"<b>Institutionalized.</b> It's a standard resource now — audit-ready, discoverable, applied consistently. Watch the grid."
+        },
+        onPlace(t,z,ok){
+          if(ok) document.querySelectorAll("[data-fp]").forEach((el,i)=>setTimeout(()=>{el.classList.remove("dead");el.classList.add("lit")}, 150*i));
+        }
+      });
+    },
+    rule:"An improvement becomes organizational only when it enters the organizational repository. Retention, informal sharing, and sponsor blessing do not institutionalize anything.",
+    trap:"Sponsor approval feels official — but authority is not the same as updating OPAs. The mechanical act of placing the asset where projects will find it is the answer."
+  },
+  { title:"From Retro to System", mech:"flow",
+    lede:"The same impediment keeps surfacing in retros — sprint after sprint. It gets logged every time, and nothing changes, because retro notes are visible to the team and invisible to the organization. Walk the impediment out of the loop.",
+    found:["regrepo"],
+    html:`<div class="srow center">
+      <div class="nbox bad" id="c4-imp"><span class="nb-t">Impediment: env provisioning delays</span><span class="nb-s">seen in retro ×<b id="c4-count">1</b></span></div>
+    </div>
+    <div class="srow center">
+      <div class="nbox" data-on="3"><span class="nb-t">Lessons learned repository</span><span class="nb-s">org-visible pattern</span></div>
+      <span class="arrowc" data-on="3">＋</span>
+      <div class="nbox" data-on="3"><span class="nb-t">Improvement backlog</span><span class="nb-s">owned · scheduled · actionable</span></div>
+    </div>
+    <div class="srow center" data-show="4">
+      <div class="nbox on"><span class="nb-t">Next sprint</span><span class="nb-s">impediment does not recur ✓</span></div>
+    </div>`,
+    wire(api){
+      stepper(api,[
+        "One impediment, freshly logged. Step forward a sprint.",
+        "Sprint ends. Retro happens. Same impediment, logged again. The notes grow; the system doesn't move.",
+        "Another sprint, another log entry. Three strikes — this is officially a <b>recurring</b> impediment, and recurrence is the signal that the retro loop can't fix it alone.",
+        "Route it out: into the <b>lessons learned repository</b> (now the organization can see the pattern) and onto an <b>improvement backlog</b> (now someone owns fixing it, with a date).",
+        "Next sprint: clean. Visible + actionable is what 'systemic change' means — not louder logging, not more retros, not the sponsor's inbox."
+      ]);
+      // count-up effect on stages 1-2
+      const btn = api.ctrl.querySelector("[data-act=step]");
+      let n = 1;
+      btn.addEventListener("click", ()=>{
+        const s = +api.scene.dataset.stage;
+        if(s===1||s===2){ n++; document.getElementById("c4-count").textContent = n; }
+        if(s===3){ const box=document.getElementById("c4-imp"); box.classList.remove("bad"); box.classList.add("on"); }
+      });
+    },
+    rule:"Recurring impediments graduate from retro notes to the lessons learned repository plus an improvement backlog. Repository = visible; backlog = actionable.",
+    trap:"Sponsor escalation and 'more retrospectives' are recurring decoys whenever the real answer is: feed the improvement system."
+  }
+]},
+
+/* ================= THEME 2 : CHANGE CONTROL ================= */
+{
+  id:"cct", color:"#ff4d9d", title:"Change Control Triggers",
+  tag:"The exact moment the formal machinery must engage — and what has to happen before anyone touches a baseline.",
+  primer:{
+    title:"The change control pipeline",
+    html:`<div class="srow center">
+      <div class="nbox" data-on="1"><span class="nb-t">Trigger</span><span class="nb-s">new law · threshold · new component</span></div>
+      <span class="arrowc" data-on="2">→</span>
+      <div class="nbox" data-on="2"><span class="nb-t">Impact assessment</span><span class="nb-s">what is it worth? what does it cost?</span></div>
+      <span class="arrowc" data-on="3">→</span>
+      <div class="nbox" data-on="3"><span class="nb-t">Change request</span><span class="nb-s">documented in the change log</span></div>
+      <span class="arrowc" data-on="4">→</span>
+      <div class="nbox" data-on="4"><span class="nb-t">CCB decision</span><span class="nb-s">approve / reject</span></div>
+      <span class="arrowc" data-on="5">→</span>
+      <div class="nbox" data-on="5"><span class="nb-t">Baseline updates</span><span class="nb-s">only now, only if approved</span></div>
+    </div>`,
+    wire(api){ stepper(api,[
+      "Five stations. Every concept in this theme is about knowing which station you're at — and never skipping one.",
+      "Something happens: legislation passes, a variance crosses its limit, a better component appears. A <b>trigger</b> is not yet a change.",
+      "First station: <b>assess the impact</b>. What's it worth, what does it cost, what does it touch? A change request without this is paperwork with no cargo.",
+      "Then the <b>change request</b> — documented, logged, traceable. Not an email, not a hallway agreement.",
+      "The <b>CCB decides</b> — against compliance, strategy, and risk. Note who doesn't decide: you. That separation is the integrity of the system.",
+      "And only after approval do <b>baselines move</b>. If you remember one thing: baselines are read-only to everyone except this pipeline."
+    ]); }
+  },
+  concepts:[
+  { title:"Threshold Crossed", mech:"machine",
+    lede:"Your governance plan defines escalation thresholds for cost and schedule variance. Below the line, you manage. Above it, the rules change completely — and heroic corrective action stops being the answer. Push the variance up and feel where the machine switches modes.",
+    found:["thresh","baseline","ccb"],
+    html:`<div class="sldwrap">
+      <div class="mlabel"><span>Combined cost + schedule variance</span><b id="c5-val">4%</b></div>
+      <input type="range" id="c5-sld" min="0" max="30" value="4" step="1" aria-label="Variance percentage">
+      <div class="sld-marks"><span>0%</span><span style="color:var(--danger)">12% — governance threshold</span><span>30%</span></div>
+    </div>
+    <div class="sldwrap">
+      <div class="meter" id="c5-meter"><i style="width:13%"></i><span class="thresh" style="left:40%"></span></div>
+    </div>
+    <div class="srow">
+      <div class="nbox on" id="c5-monitor"><span class="nb-t">PM toolkit</span><span class="nb-s">monitor · correct · report</span></div>
+      <div class="nbox" id="c5-gate"><span class="nb-t">Governance gate</span><span class="nb-s" id="c5-gate-s">dormant</span></div>
+      <div class="nbox" id="c5-base"><span class="nb-t">Baselines</span><span class="nb-s">🔒 locked — CCB only</span></div>
+    </div>
+    <div class="srow" id="c5-pipe" style="display:none">
+      <div class="nbox"><span class="nb-t">Re-forecast</span><span class="nb-s">updated estimates</span></div>
+      <span class="arrowc">→</span>
+      <div class="nbox"><span class="nb-t">Formal change request</span></div>
+      <span class="arrowc">→</span>
+      <div class="nbox"><span class="nb-t">CCB</span><span class="nb-s">approves rebaseline</span></div>
+      <span class="arrowc">→</span>
+      <div class="nbox"><span class="nb-t">Baselines updated ✓</span><span class="nb-s">with sponsor visibility</span></div>
+    </div>`,
+    wire(api){
+      api.caption("Drag the variance slider. Below 12%, you're in ordinary management territory. Watch what happens to your toolkit the moment you cross the red line.");
+      const sld=document.getElementById("c5-sld"), val=document.getElementById("c5-val"),
+            meter=document.getElementById("c5-meter"), mon=document.getElementById("c5-monitor"),
+            gate=document.getElementById("c5-gate"), gs=document.getElementById("c5-gate-s");
+      let armed=false;
+      sld.addEventListener("input", ()=>{
+        const v=+sld.value; val.textContent=v+"%";
+        meter.querySelector("i").style.width=(v/30*100)+"%";
+        meter.classList.toggle("danger", v>=12);
+        if(v>=12 && !armed){
+          armed=true;
+          mon.classList.remove("on"); mon.classList.add("off");
+          gate.classList.add("bad"); gs.textContent="TRIPPED — formal path required";
+          api.caption("<b>Threshold exceeded.</b> Your ordinary toolkit greys out — monitoring alone is no longer a legitimate answer. Negotiating prices or tightening procurement might help later, but the variance has already crossed the line the governance plan drew. One path remains.");
+          api.ctrl.innerHTML = `<button class="actbtn" data-act="cr">File formal change request</button>`;
+          api.ctrl.querySelector("[data-act=cr]").addEventListener("click", ()=>{
+            document.getElementById("c5-pipe").style.display="flex";
+            gate.classList.remove("bad"); gate.classList.add("on"); gs.textContent="engaged ✓";
+            api.ctrl.querySelector("[data-act=cr]").classList.add("hidden");
+            api.caption("Analyze causes → re-forecast with current data → change request → CCB approves the rebaseline. Governance integrity intact, sponsor fully sighted, decision documented. <b>That</b> is what the tripwire is for.");
+            api.complete();
+          });
+        }else if(v<12 && !armed){
+          api.caption(`Variance at <b>${v}%</b> — inside tolerance. Monitor, take corrective action, report. This is yours to manage; no formal machinery needed.`);
+        }
+      });
+      api.ctrl.innerHTML = "";
+    },
+    rule:"Variance beyond governance thresholds is a governance trigger: analyze, re-forecast, submit a formal change request. Baselines change only through change control.",
+    trap:"Hands-on fixes (negotiate! expedite! optimize!) feel like leadership. The moment thresholds fire, the exam wants process integrity, not heroics."
+  },
+  { title:"Assess Before Anything", mech:"machine",
+    lede:"A better component appears just as your product is ready to ship. Adopt it? Defer it? Ask for budget? Every one of those is a downstream station — and none of them has power until the assessment station is lit. Tap the stations and find the live one.",
+    found:["cc"],
+    html:`<div class="srow center">
+      <div class="nbox" data-node="assess"><span class="nb-t">Assess impact & benefits</span><span class="nb-s">what is this change worth?</span></div>
+    </div>
+    <div class="srow center">
+      <div class="nbox" data-node="cr"><span class="nb-t">File change request for budget</span><span class="nb-s">needs assessed value</span></div>
+      <div class="nbox" data-node="adopt"><span class="nb-t">Integrate & announce</span><span class="nb-s">needs assessed risk</span></div>
+      <div class="nbox" data-node="defer"><span class="nb-t">Defer to next release</span><span class="nb-s">needs assessed cost of waiting</span></div>
+    </div>`,
+    wire(api){
+      api.caption("Four stations, one power source. Tap in any order — unpowered stations will tell you why they fizzle.");
+      seq(api,{
+        order:["assess"],
+        good:{assess:"<b>Assessment lit.</b> Impact and benefits are known — and look: every downstream station just became a legitimate, informed decision instead of a gamble. Adopt via change control, defer knowingly, or skip — all defensible now."},
+        fizzle:{
+          cr:"Fizzle. A change request with no assessed impact is an empty envelope — the CCB has nothing to weigh. Premature.",
+          adopt:"Fizzle. Integrating unevaluated components at the point of shipping is a gamble wearing a business-decision costume.",
+          defer:"Fizzle. Deferring before assessing quietly gives away a possible first-to-market win. Even 'wait' needs analysis behind it."
+        },
+        done(){
+          api.scene.querySelectorAll("[data-node=cr],[data-node=adopt],[data-node=defer]").forEach(n=>n.classList.add("on"));
+        }
+      });
+    },
+    rule:"Impact assessment precedes everything: change requests, adoption, and deferral are all downstream of knowing what the change is worth.",
+    trap:"Jumping straight to a change request feels disciplined. A CR without an assessed impact is just paperwork — the exam wants the analysis first."
+  },
+  { title:"Late-Breaking Law", mech:"lever",
+    lede:"You're finalizing exit criteria on a predictive project when new legislation adds a deliverable. There's a classifier lever in front of you: is this a risk to monitor, or a change to process? The whole question turns on one test — has it already happened? Flip the lever both ways.",
+    found:["cc","riskdocs"],
+    html:`<div class="srow" data-when="risk">
+      <div class="nbox bad"><span class="nb-t">Risk register</span><span class="nb-s">entry: 'new legislation' — status: monitoring</span></div>
+      <div class="scol" style="flex:1">
+        <div class="mlabel"><span>Compliance exposure</span><b style="color:var(--danger)">rising</b></div>
+        <div class="meter danger"><i style="width:78%"></i></div>
+        <span class="ticker">go-live approaching · deliverable unbuilt · law already in force</span>
+      </div>
+    </div>
+    <div class="srow" data-when="change">
+      <div class="nbox on"><span class="nb-t">Documented with stakeholder</span><span class="nb-s">requirement captured precisely</span></div>
+      <span class="arrowc on">→</span>
+      <div class="nbox on"><span class="nb-t">Change log</span><span class="nb-s">formal record</span></div>
+      <span class="arrowc on">→</span>
+      <div class="nbox on"><span class="nb-t">CCB evaluates</span><span class="nb-s">compliance · alignment · risk</span></div>
+      <span class="arrowc on">→</span>
+      <div class="nbox on"><span class="nb-t">Plan updated</span><span class="nb-s">go-live impact managed openly</span></div>
+    </div>`,
+    wire(api){
+      toggler(api,{
+        intro:"The lever has two positions. Try both — then lock in the one that survives contact with reality.",
+        states:[
+          {id:"risk", label:"Treat as a risk", caption:"The 'risk' sits in the register being monitored… while the law is already in force. A risk is a <b>potential future event</b> — this one already happened. Exposure climbs every week the deliverable stays unbuilt. Monitoring a certainty is just watching yourself miss it."},
+          {id:"change", label:"Treat as a change", caption:"Passed legislation = <b>realized change</b>. Document it with the compliance stakeholder, log it, and let the CCB weigh it against go-live. However late it arrives, external legal reality rides the formal pipeline — never rejected for being outside exit criteria, never parked, never routed around via the sponsor."}
+        ],
+        final:"change"
+      });
+    },
+    rule:"A realized regulatory change goes through formal change control, no matter how late it arrives. Never reject it, park it as a risk, or route around the process via the sponsor.",
+    trap:"'Record it as a risk' tempts because compliance smells like the risk register. Run the test: has it already happened? Then it's a change, not a risk."
+  },
+  { title:"The Plan Must Follow Reality", mech:"morph",
+    lede:"A risk fired with far more impact than planned, and your team has designed a better response that must ship now. Two worlds diverge from this moment — one where you act and explain later, one where acting and updating the plan are a single move. Visit both and watch the trust line.",
+    found:["riskdocs"],
+    html:`<div class="srow" data-when="silent">
+      <div class="scol" style="flex:1">
+        <div class="nbox on"><span class="nb-t">New response deployed</span><span class="nb-s">fast ✓</span></div>
+        <div class="nbox bad"><span class="nb-t">Risk plan still shows old response</span><span class="nb-s">record contradicts reality</span></div>
+        <div class="nbox bad"><span class="nb-t">Stakeholders discover the swap</span><span class="nb-s">"why weren't we told?"</span></div>
+      </div>
+      <div class="scol" style="flex:1">
+        <div class="mlabel"><span>Stakeholder trust</span><b style="color:var(--danger)">falling</b></div>
+        <div class="meter danger"><i style="width:26%"></i></div>
+        <span class="ticker">confusion · second-guessing · audit finding waiting to happen</span>
+      </div>
+    </div>
+    <div class="srow" data-when="together">
+      <div class="scol" style="flex:1">
+        <div class="nbox on"><span class="nb-t">New response deployed</span><span class="nb-s">just as fast ✓</span></div>
+        <div class="nbox on"><span class="nb-t">Risk management plan updated</span><span class="nb-s">change + reasoning recorded</span></div>
+        <div class="nbox on"><span class="nb-t">Stakeholders see it as it happens</span><span class="nb-s">adaptation with a paper trail</span></div>
+      </div>
+      <div class="scol" style="flex:1">
+        <div class="mlabel"><span>Stakeholder trust</span><b style="color:var(--ac)">holding</b></div>
+        <div class="meter"><i style="width:88%"></i></div>
+        <span class="ticker calm">same speed · full transparency · plan matches reality</span>
+      </div>
+    </div>`,
+    wire(api){
+      toggler(api,{
+        intro:"Same emergency, same better response, two protocols. Toggle between the worlds.",
+        states:[
+          {id:"silent", label:"Act now, tell later", caption:"The response ships fast — good. But the plan now lies about what the project is doing, and stakeholders find out by surprise. Note what the urgency <b>didn't</b> buy you: the deploy was no faster than the other world's. You paid trust for nothing."},
+          {id:"together", label:"Act + update together", caption:"Same speed — updating the plan never slowed the response. But now the record is truthful, the reasoning is visible, and stakeholders watched it happen. Adaptation and transparency are <b>one move</b>, not a move and an apology."}
+        ],
+        final:"together"
+      });
+    },
+    rule:"When reality outgrows the plan: implement the better response and update the plan together. Speed and transparency are one move, not two.",
+    trap:"'Act now, tell later' exploits urgency. The exam never rewards keeping stakeholders in the dark — and the transparency costs you zero speed."
+  }
+]},
+
+/* ================= THEME 3 : DIAGNOSE ================= */
+{
+  id:"diag", color:"#a78bfa", title:"Diagnose Before You Intervene",
+  tag:"One cycle in five acts: framework → assess → interpret → act → adapt yourself. Knowing which act you're in is the entire skill.",
+  primer:{
+    title:"The diagnostic cycle",
+    html:`<div class="srow center">
+      <div class="nbox" data-on="1"><span class="nb-t">1 · Framework</span><span class="nb-s">how will we assess?</span></div>
+      <span class="arrowc" data-on="2">→</span>
+      <div class="nbox" data-on="2"><span class="nb-t">2 · Assess</span><span class="nb-s">collect the data</span></div>
+      <span class="arrowc" data-on="3">→</span>
+      <div class="nbox" data-on="3"><span class="nb-t">3 · Interpret</span><span class="nb-s">turn data into insight</span></div>
+      <span class="arrowc" data-on="4">→</span>
+      <div class="nbox" data-on="4"><span class="nb-t">4 · Act</span><span class="nb-s">targeted interventions</span></div>
+      <span class="arrowc" data-on="5">→</span>
+      <div class="nbox" data-on="5"><span class="nb-t">5 · Adapt</span><span class="nb-s">including yourself</span></div>
+    </div>`,
+    wire(api){ stepper(api,[
+      "Five acts, strict order. Every concept in this theme is a scenario that tells you which acts are already done — your job is to do the <b>next</b> one, never an earlier or later one.",
+      "<b>Framework first:</b> before collecting anything, know how you'll assess — which plans, SOPs, and evaluation structures apply. Data without a framework is noise.",
+      "<b>Assess:</b> now surveys and interviews are legitimate — they have a structure to land in.",
+      "<b>Interpret:</b> collected data isn't insight yet. Analysis tools sit between the pile of surveys and any decision.",
+      "<b>Act:</b> once diagnosis and alignment are complete, more study is waste. Deploy targeted interventions.",
+      "<b>Adapt:</b> sometimes the thing that must change is your own operating style. The cycle applies to you too."
+    ]); }
+  },
+  concepts:[
+  { title:"Framework First", mech:"machine",
+    lede:"Management wants a structured approach to understanding staff attitudes before a merger. Your instrument panel is live — but uncalibrated. Try collecting data cold, then load the framework and watch the same instruments snap into focus.",
+    found:["eef","opa"],
+    html:`<div class="srow">
+      <div class="scol" style="flex:1.4">
+        <div class="nbox" id="c9-panel"><span class="nb-t">Assessment instruments</span><span class="nb-s" id="c9-status">uncalibrated</span>
+          <div class="srow" id="c9-noise" style="margin-top:8px">
+            <span class="blip missed"></span><span class="blip missed"></span><span class="blip missed"></span>
+            <span class="blip missed"></span><span class="blip missed"></span><span class="blip missed"></span>
+          </div>
+        </div>
+      </div>
+      <div class="scol" style="flex:1">
+        <div class="zone" data-zone="slot"><span class="zlabel">Framework slot</span><span class="zsub">what calibrates the instruments?</span><div class="zslot"></div></div>
+      </div>
+    </div>
+    <div class="token-tray"><span class="tray-label">Available moves</span>
+      <button class="token" data-token="survey">Distribute a quick survey</button>
+      <button class="token" data-token="focus">Convene focus groups</button>
+      <button class="token" data-token="plan">Resource mgmt plan + SOPs</button>
+    </div>`,
+    wire(api){
+      api.caption("The scenario's key phrase is <b>structured approach</b>. Drag any move into the framework slot — the instruments will tell you if it calibrates them.");
+      dragger(api,{
+        pairs:{plan:"slot"}, required:["plan"],
+        captions:{
+          "survey>slot":"The survey fires — into nothing. Without a defined framework the readings scatter: unfocused questions, unrepresentative answers. A survey is an <b>instrument</b>, not a framework.",
+          "focus>slot":"Focus groups convene — whoever was loudest shows up. Without an evaluation framework there's no representative coverage. Also an instrument, not a framework.",
+          "plan>slot":"<b>Calibrated.</b> The resource management plan defines how cultural assessment works here; SOPs define accepted behavior. Now — and only now — do surveys and focus groups produce focused, comparable data."
+        },
+        onPlace(t,z,ok){
+          if(ok){
+            document.getElementById("c9-status").textContent="calibrated ✓";
+            document.getElementById("c9-panel").classList.add("on");
+            document.getElementById("c9-noise").innerHTML='<span class="blip"></span><span class="blip"></span><span class="blip"></span><span class="blip"></span><span class="blip"></span><span class="blip"></span>';
+          }
+        }
+      });
+    },
+    rule:"When the ask is a 'structured approach,' get the framework before collecting data — the resource management plan and SOPs tell you how to assess.",
+    trap:"Surveys and focus groups are genuinely right steps — later. The question asks what comes first, and frameworks precede fieldwork."
+  },
+  { title:"Assess Before Fixing", mech:"flow",
+    lede:"Engineers are resisting an agile transformation despite leadership support. The visible layer — complaints — sits on top of layers nobody has looked at yet. Peel them back with an actual assessment before anyone designs a fix.",
+    found:["eef","culture"],
+    html:`<div class="scol">
+      <div class="nbox bad" data-off="4"><span class="nb-t">Surface layer: complaints & slowdown</span><span class="nb-s">what everyone can see</span></div>
+      <div class="nbox" data-on="1"><span class="nb-t">Assessment deployed</span><span class="nb-s">surveys + interviews, structured</span></div>
+      <div class="nbox" data-on="2"><span class="nb-t">Hidden layer: values</span><span class="nb-s">"deep expertise earned my autonomy — agile feels like losing it"</span></div>
+      <div class="nbox" data-on="3"><span class="nb-t">Hidden layer: behaviors</span><span class="nb-s">informal senior-engineer sign-off culture that agile ceremonies bypass</span></div>
+      <div class="nbox on" data-show="4"><span class="nb-t">Now interventions can aim</span><span class="nb-s">training, roles, and strategy targeted at the real drivers</span></div>
+    </div>`,
+    wire(api){ stepper(api,[
+      "All you can see is the surface: concerns, resistance, slow adoption. Job descriptions, training, and strategy documents are all fixes for layers nobody has seen yet. Assess first.",
+      "Deploy the cultural assessment — surveys and interviews, with the EEF review already done.",
+      "First hidden layer revealed: <b>values</b>. The resistance isn't anti-agile — it's fear of losing hard-earned autonomy. No job description rewrite touches that.",
+      "Second layer: <b>behaviors</b>. An informal sign-off culture that the new ceremonies accidentally bypass. Training on 'agile practices' would have trained straight past it.",
+      "With real drivers visible, interventions finally have coordinates. Diagnosis precedes treatment — in medicine and in transformations."
+    ]); },
+    rule:"Diagnose values and behaviors before any intervention. Assessment precedes training, strategy, and administrative fixes.",
+    trap:"Contrast with the previous concept: there, assessment was premature because no framework existed. Here the framework question is settled — so assessment IS the next step. Track what the scenario says is already complete."
+  },
+  { title:"Interpret the Data", mech:"machine",
+    lede:"Surveys done, interviews done. What you're holding is a pile of raw data — and a pile is not an answer. Senior management asked how team dynamics affect decisions. Drag the pile through the one thing that turns data into insight.",
+    found:["eef"],
+    html:`<div class="token-tray"><span class="tray-label">What you have</span>
+      <button class="token" data-token="pile">Raw pile: 214 survey rows · 18 interviews</button></div>
+    <div class="srow">
+      <div class="zone" data-zone="pmo"><span class="zlabel">PMO outbox</span><span class="zsub">forward for review</span><div class="zslot"></div></div>
+      <div class="zone" data-zone="meeting"><span class="zlabel">Summary meeting</span><span class="zsub">legal + procurement mgrs</span><div class="zslot"></div></div>
+      <div class="zone" data-zone="lens"><span class="zlabel">Cultural & political awareness lens</span><span class="zsub">analysis tools</span><div class="zslot"></div></div>
+    </div>
+    <div class="srow" id="c11-map" style="display:none">
+      <span class="tray-label">Decision-influence map — crystallized</span>
+      <div class="cardlet lit"><span class="cl-t">Ops director</span><span class="cl-s">real veto on priorities</span></div>
+      <div class="cardlet lit"><span class="cl-t">Site leads coalition</span><span class="cl-s">informal gatekeepers</span></div>
+      <div class="cardlet lit"><span class="cl-t">Finance vs. delivery</span><span class="cl-s">standing tension shaping governance</span></div>
+    </div>`,
+    wire(api){
+      api.caption("Three destinations for the pile. Two of them move the data; one transforms it.");
+      dragger(api,{
+        pairs:{pile:"lens"}, required:["pile"],
+        captions:{
+          "pile>pmo":"Forwarded. The PMO now has… the same raw pile. Passing data along isn't analysis — it's abdicating the analysis that's yours to do.",
+          "pile>meeting":"Projected on a screen: 214 rows. The managers squint politely. A summary review without interpretation is theater — nobody in that room can act on it.",
+          "pile>lens":"<b>Transformed.</b> Cultural and political awareness tools surface who really decides, which coalitions gate what, and where the standing tensions are. That's what management actually asked for."
+        },
+        onPlace(t,z,ok){ if(ok) document.getElementById("c11-map").style.display="flex"; }
+      });
+    },
+    rule:"After collection comes interpretation. Analysis tools sit between raw data and strategy — skipping them hands someone a pile of surveys instead of an answer.",
+    trap:"Handing findings 'up' to a PMO or a review meeting looks diligent but is an abdication. When the scenario says data is collected, the verb the exam wants is analyze."
+  },
+  { title:"Now Act", mech:"machine",
+    lede:"Engagement complete. Resistance addressed. Strategy aligned with cultural values. The cycle dial points past Interpret — and every backward move from here burns time without adding knowledge. Find the move that goes forward.",
+    found:["altitude"],
+    html:`<div class="srow center">
+      <div class="nbox off"><span class="nb-t">Framework ✓</span></div><span class="arrowc on">→</span>
+      <div class="nbox off"><span class="nb-t">Assess ✓</span></div><span class="arrowc on">→</span>
+      <div class="nbox off"><span class="nb-t">Interpret ✓</span></div><span class="arrowc on">→</span>
+      <div class="nbox on"><span class="nb-t">YOU ARE HERE</span><span class="nb-s">act</span></div>
+    </div>
+    <div class="srow">
+      <div class="nbox" data-node="revisit"><span class="nb-t">Revisit stakeholder interviews</span><span class="nb-s">confirm alignment again</span></div>
+      <div class="nbox" data-node="file"><span class="nb-t">Compile & file engagement summary</span><span class="nb-s">store in repository</span></div>
+      <div class="nbox" data-node="framework"><span class="nb-t">Update competency framework</span><span class="nb-s">revised job descriptions</span></div>
+      <div class="nbox" data-node="act"><span class="nb-t">Launch targeted interventions</span><span class="nb-s">process redesign · staff training</span></div>
+    </div>
+    <div class="srow" data-show="1" style="--wastefix:1">
+      <div class="scol" style="flex:1">
+        <div class="mlabel"><span>Momentum wasted on backward moves</span><b id="c12-waste">0 weeks</b></div>
+        <div class="meter danger" id="c12-wmeter"><i style="width:0%"></i></div>
+      </div>
+    </div>`,
+    wire(api){
+      applyStage(api.scene,1);
+      api.caption("The dial shows three acts complete. Tap moves — backward ones cost you on the waste meter.");
+      let waste=0;
+      seq(api,{
+        order:["act"],
+        good:{act:"<b>Forward.</b> Process redesign and staff training deploy, aimed by everything the diagnosis found. After three questions in this theme rewarding caution, this one punishes it — the cycle has a direction."},
+        fizzle:{
+          revisit:"Backward. Alignment is already achieved — the scenario says so. Re-interviewing re-answers a settled question. +2 weeks.",
+          file:"Sideways. Filing summaries is administrative housekeeping, not implementation. The team is poised to intervene and you handed them a filing task. +1 week.",
+          framework:"Premature-but-later. Updating competency frameworks documents the change after it exists. It's follow-up, not the intervention itself. +1 week."
+        }
+      });
+      api.scene.querySelectorAll("[data-node]").forEach(n=>n.addEventListener("click",()=>{
+        if(n.dataset.node!=="act" && !n.classList.contains("on")){
+          waste += n.dataset.node==="revisit"?2:1;
+          document.getElementById("c12-waste").textContent = waste+" weeks";
+          document.getElementById("c12-wmeter").querySelector("i").style.width = Math.min(waste*16,100)+"%";
+        }
+      }));
+    },
+    rule:"When diagnosis and alignment are complete, the answer is action — targeted interventions, not another lap of study or paperwork.",
+    trap:"Careful-sounding options are only right in the early acts. Find your position in the cycle before picking the cautious move."
+  },
+  { title:"Adapt Yourself Too", mech:"morph",
+    lede:"You arrived at a startup carrying an established company's operating system: hierarchy, detailed schedules, formal authority. The team is already resisting. Toggle between imposing your structure and adapting to theirs — and watch what each does to decision flow.",
+    found:["culture","eef"],
+    html:`<div class="srow" data-when="pyramid">
+      <div class="scol" style="flex:1">
+        <div class="nbox bad"><span class="nb-t">Imported hierarchy</span><span class="nb-s">decisions queue at the top — you</span></div>
+        <div class="nbox bad"><span class="nb-t">Detailed master schedule</span><span class="nb-s">unpredictable design work ignores it within a week</span></div>
+        <div class="nbox bad"><span class="nb-t">Team response</span><span class="nb-s">resistance sparks · workarounds · quiet disengagement</span></div>
+      </div>
+      <div class="scol" style="flex:1">
+        <div class="mlabel"><span>Decision throughput</span><b style="color:var(--danger)">bottlenecked</b></div>
+        <div class="meter danger"><i style="width:22%"></i></div>
+        <span class="ticker">culture is an EEF — it was here before you</span>
+      </div>
+    </div>
+    <div class="srow" data-when="network">
+      <div class="scol" style="flex:1">
+        <div class="nbox on"><span class="nb-t">Re-evaluated hierarchy expectations</span><span class="nb-s">trust the team's knowledge</span></div>
+        <div class="nbox on"><span class="nb-t">Decision-making pushed to the edges</span><span class="nb-s">empowered engineers decide in place</span></div>
+        <div class="nbox on"><span class="nb-t">Team response</span><span class="nb-s">resistance dissolves — the style finally fits the culture</span></div>
+      </div>
+      <div class="scol" style="flex:1">
+        <div class="mlabel"><span>Decision throughput</span><b style="color:var(--ac)">flowing</b></div>
+        <div class="meter"><i style="width:86%"></i></div>
+        <span class="ticker calm">uncertainty tolerance is the org's operating system</span>
+      </div>
+    </div>`,
+    wire(api){
+      toggler(api,{
+        intro:"Two operating systems for the same team. Toggle — and notice which one bends: the culture, or you.",
+        states:[
+          {id:"pyramid", label:"Impose your structure", caption:"The pyramid presses down; decisions bottleneck at your desk; the schedule is fiction by Tuesday. The resistance already told you this — a startup's tolerance for uncertainty is a response to the conditions it operates in. You cannot out-process an EEF. Note: the halfway version ('informal but still hierarchical') is the same pyramid with a friendlier font."},
+          {id:"network", label:"Adapt to the culture", caption:"Expectations re-evaluated, decision-making pushed to the people with the knowledge. Throughput jumps — not because the team changed, but because you did. Act V of the cycle: sometimes the diagnosed subject is you."}
+        ],
+        final:"network"
+      });
+    },
+    rule:"Leadership style bends to the organization's culture, not the reverse. In high-uncertainty cultures, empower rather than impose structure.",
+    trap:"The compromise option — informal but still hierarchical — is bait. When the team has already resisted imported formality, half-importing it is not adaptation."
+  }
+]},
+
+/* ================= THEME 4 : ESCALATE OR OWN IT ================= */
+{
+  id:"esc", color:"#ffc940", title:"Escalate or Own It?",
+  tag:"The sharpest judgment call: what is the project manager's own job, and what genuinely belongs above the project.",
+  primer:{
+    title:"Decision altitude",
+    html:`<div class="scol">
+      <div class="nbox" data-on="2"><span class="nb-t">EXECUTIVE ALTITUDE — sponsor · portfolio · change management</span><span class="nb-s">technology pivots · acquisitions · strategy shifts · anything that redefines why the project exists</span></div>
+      <div class="nbox" data-on="1"><span class="nb-t">PROJECT FLOOR — yours</span><span class="nb-s">stakeholder alignment · applying lessons · running change control · facilitating conflict about facts</span></div>
+    </div>`,
+    wire(api){ stepper(api,[
+      "Two altitudes. Every miss in this theme came from routing a decision to the wrong one — in either direction.",
+      "The <b>project floor</b> is bigger than it looks: aligning conflicting stakeholders, applying lessons learned, processing changes. Escalating floor-level work reads as abdication.",
+      "The <b>executive altitude</b> holds decisions that redefine the project's reason to exist: strategy pivots, acquisitions, portfolio direction. Handling those at project level reads as freelancing. The test is never urgency — it's <b>whose decision is it</b>."
+    ]); }
+  },
+  concepts:[
+  { title:"Own the Room", mech:"story",
+    lede:"Stakeholders are split on whether full regulatory compliance is worth the cost. There's a sponsor door at the back of the room — and walking through it first would be handing away your own job. This conflict is about facts, and facts are something you can bring. Run the room.",
+    found:["altitude"],
+    html:`<div class="srow">
+      <div class="nbox bad" data-off="3"><span class="nb-t">Stakeholder A</span><span class="nb-s">"full compliance — obviously"</span></div>
+      <div class="nbox bad" data-off="3"><span class="nb-t">Stakeholder B</span><span class="nb-s">"trim it — the cost is absurd"</span></div>
+      <div class="nbox bad" data-off="3"><span class="nb-t">Stakeholder C</span><span class="nb-s">"do we even need all of it?"</span></div>
+      <div class="nbox" data-on="3"><span class="nb-t" >Aligned</span><span class="nb-s">shared picture of obligation + exposure</span></div>
+    </div>
+    <div class="srow">
+      <div class="cardlet" data-show="1"><span class="cl-t">Regulatory obligations</span><span class="cl-s">what the law actually requires</span></div>
+      <div class="cardlet" data-show="2"><span class="cl-t">Non-compliance exposure</span><span class="cl-s">legal · financial · reputational</span></div>
+    </div>
+    <div class="srow">
+      <div class="scol" style="flex:1">
+        <div class="mlabel"><span>Alignment</span><b id="c14-al">12%</b></div>
+        <div class="meter" id="c14-meter"><i style="width:12%"></i></div>
+      </div>
+      <div class="gatelock" id="c14-door">Sponsor door — backstop, not step one</div>
+    </div>`,
+    wire(api){
+      const meter = api.scene.querySelector("#c14-meter i"), al = api.scene.querySelector("#c14-al");
+      stepper(api,[
+        "Three stakeholders, three positions, one knowledge gap. Lead the discussion — step by step.",
+        "Lay down the first fact: the <b>actual regulatory obligations</b>. Not opinions about them — the requirements themselves. Alignment starts moving the moment shared facts exist.",
+        "Second fact: the <b>cost of non-compliance</b> — legal, financial, reputational. 'Trim it' stops sounding thrifty when the exposure is on the table.",
+        "Alignment. The conflict was never a values war; it was a knowledge gap, and facilitation closed it. The sponsor door stayed shut — escalating before facilitating is abdication, and trimming compliance to please the room was never on the menu."
+      ]);
+      api.ctrl.querySelector("[data-act=step]").addEventListener("click", ()=>{
+        const s=+api.scene.dataset.stage;
+        const pct = s===1?45 : s===2?72 : s>=3?100 : 12;
+        meter.style.width=pct+"%"; al.textContent=pct+"%";
+      });
+    },
+    rule:"Compliance itself is non-negotiable — and building stakeholder alignment around it is the PM's own job. Escalation before facilitation is abdication.",
+    trap:"'Conflicting stakeholders + sponsor exists' pattern-matches to escalation. But conflict about facts is resolved with facilitation and information, not authority."
+  },
+  { title:"Strategy Belongs Above", mech:"machine",
+    lede:"The sponsor is excited about a new technology; your engineers say adopting it means extensive recoding. Every reasonable-sounding move on this board is real work — done too early. Only one unlocks the chain. Tap them and watch what powers what.",
+    found:["altitude"],
+    html:`<div class="srow">
+      <div class="nbox" data-node="align"><span class="nb-t">Align with sponsor & portfolio</span><span class="nb-s">assess the technology's business value</span></div>
+      <div class="nbox" data-node="plan"><span class="nb-t">Update the project plan</span><span class="nb-s">bake in the new direction</span></div>
+      <div class="nbox" data-node="warn"><span class="nb-t">Warn stakeholders</span><span class="nb-s">scope will expand, timelines slip</span></div>
+      <div class="nbox" data-node="size"><span class="nb-t">Size team capacity</span><span class="nb-s">max absorbable scope change</span></div>
+    </div>`,
+    wire(api){
+      api.caption("Four moves. Three of them are correct <b>later</b>. Tap freely — premature ones fizzle and tell you what they were waiting for.");
+      seq(api,{
+        order:["align","plan","size","warn"],
+        good:{
+          align:"<b>Strategy first.</b> A technology pivot is a business decision — it belongs at portfolio altitude. Decision made up there… now watch it descend.",
+          plan:"Now the plan updates — downstream of an approved strategy, it's implementation instead of speculation.",
+          size:"Now sizing capacity is real work against a real direction, not arithmetic on a hypothesis.",
+          warn:"And now stakeholders hear an approved change, not a rumor. Full chain: strategy → plan → capacity → communication."
+        },
+        fizzle:{
+          plan:"Fizzle — you'd be rebuilding the plan around a strategy nobody has approved. If the decision goes the other way, this is pure rework.",
+          warn:"Fizzle — broadcasting scope expansion that may never materialize burns credibility you'll want later.",
+          size:"Fizzle — sizing the team against an unapproved direction is homework for a class that may be cancelled."
+        }
+      });
+    },
+    rule:"Technology pivots are business-strategy decisions. Align with the sponsor and portfolio before touching the plan — strategy first, plan second.",
+    trap:"Every wrong option here is a reasonable action done too early. Sequence is the whole question: strategic alignment unlocks the rest."
+  },
+  { title:"Organizational Shock", mech:"machine",
+    lede:"Sprint five, release next quarter — and your company just got acquired by a competitor with a similar product. This event didn't happen to your project; it happened to your organization. Route the shockwave and see what each altitude does with it.",
+    found:["altitude","cc"],
+    html:`<div class="token-tray"><span class="tray-label">Incoming</span>
+      <button class="token" data-token="shock">⚡ Acquisition announced</button></div>
+    <div class="srow">
+      <div class="zone" data-zone="floor"><span class="zlabel">Absorb at project level</span><span class="zsub">analyze products · reach out to their team · prep termination docs</span><div class="zslot"></div></div>
+      <div class="zone" data-zone="up"><span class="zlabel">Route up: sponsor + change management</span><span class="zsub">executive direction first</span><div class="zslot"></div></div>
+    </div>
+    <div class="srow" id="c16-out" style="display:none">
+      <div class="cardlet lit"><span class="cl-t">Continue</span><span class="cl-s">with new positioning</span></div>
+      <div class="cardlet lit"><span class="cl-t">Modify</span><span class="cl-s">merge with their roadmap</span></div>
+      <div class="cardlet lit"><span class="cl-t">Terminate</span><span class="cl-s">orderly, with lessons kept</span></div>
+      <span class="tray-label" style="width:100%">…whichever it is, it comes DOWN as direction — it doesn't get guessed at from below.</span>
+    </div>`,
+    wire(api){
+      api.caption("One shockwave, two routes. Try either — the floor route is explorable and instructive.");
+      dragger(api,{
+        pairs:{shock:"up"}, required:["shock"],
+        captions:{
+          "shock>floor":"The floor cracks. Comparative analysis assumes the project continues; collaborating with their team assumes integration; termination docs assume cancellation. Three moves, three contradictory guesses about a decision that <b>hasn't been made</b> — and not one of them is yours to make.",
+          "shock>up":"<b>Routed correctly.</b> An acquisition is organizational change — it goes to the sponsor and through formal change management. Executive direction comes back down: continue, modify, or terminate. Then, and only then, project-level work resumes on solid ground."
+        },
+        onPlace(t,z,ok){ if(ok) document.getElementById("c16-out").style.display="flex"; }
+      });
+    },
+    rule:"Events above the project — mergers, acquisitions, strategy shifts — require executive direction through formal change management before any project-level move.",
+    trap:"The boundary test is whose decision it is, not how urgent it feels. Escalate what's organizational; own what's stakeholder alignment or applying lessons."
+  }
+]},
+
+/* ================= THEME 5 : RISK ORDER ================= */
+{
+  id:"risk", color:"#8af25e", title:"Risk in the Right Order",
+  tag:"Identification and analysis have a fixed sequence: people first, register before plan, qualitative before quantitative, expertise where knowledge is thin.",
+  primer:{
+    title:"The risk process rail",
+    html:`<div class="srow center">
+      <div class="nbox" data-on="1"><span class="nb-t">Engage people</span><span class="nb-s">stakeholders surface risks</span></div>
+      <span class="arrowc" data-on="2">→</span>
+      <div class="nbox" data-on="2"><span class="nb-t">Risk register</span><span class="nb-s">living baseline</span></div>
+      <span class="arrowc" data-on="3">→</span>
+      <div class="nbox" data-on="3"><span class="nb-t">Qualitative</span><span class="nb-s">P × I triage — all risks</span></div>
+      <span class="arrowc" data-on="4">→</span>
+      <div class="nbox" data-on="4"><span class="nb-t">Quantitative</span><span class="nb-s">modeling — top risks only</span></div>
+      <span class="arrowc" data-on="5">→</span>
+      <div class="nbox" data-on="5"><span class="nb-t">Responses & reserves</span><span class="nb-s">sized by the analysis</span></div>
+    </div>`,
+    wire(api){ stepper(api,[
+      "One rail, five stations, no skipping. Each concept in this theme is a scenario tempting you to board mid-rail.",
+      "Risk work starts with <b>people</b> — risks live in stakeholders' heads before they live in any document.",
+      "What they surface lands in the <b>register</b> — the living log. (The risk management <b>plan</b> is the methodology; it doesn't change every time a risk appears.)",
+      "<b>Qualitative analysis</b> triages everything: probability × impact, fast, no math degree required.",
+      "<b>Quantitative analysis</b> — Monte Carlo and friends — models only the prioritized survivors. Heavy tools, narrow input.",
+      "And <b>reserves</b> are sized by that analysis. Asking for reserves before analysis is asking for a number with no math behind it."
+    ]); }
+  },
+  concepts:[
+  { title:"People Before Process", mech:"machine",
+    lede:"Deep uncertainty: novel technology, shifting local regulations, unknown risks everywhere. Your risk radar is dark — not because there are no risks, but because nobody who can see them is at the table yet. Seat them.",
+    found:["riskdocs","reserves"],
+    html:`<div class="token-tray"><span class="tray-label">Key stakeholders — drag to the table</span>
+      <button class="token" data-token="s1">Community representative</button>
+      <button class="token" data-token="s2">Local regulator</button>
+      <button class="token" data-token="s3">Field engineer</button></div>
+    <div class="srow">
+      <div class="zone" style="flex:2" data-zone="table"><span class="zlabel">Risk identification table</span><div class="zslot" style="display:flex;gap:8px;flex-wrap:wrap"></div></div>
+      <div class="scol" style="flex:1.5">
+        <div class="nbox"><span class="nb-t">Risk register</span><span class="nb-s">baseline</span>
+          <div id="c17-reg" style="margin-top:6px; display:flex; flex-direction:column; gap:4px"></div>
+        </div>
+        <div class="gatelock" id="c17-res">Reserves — locked · needs quantitative analysis</div>
+        <div class="gatelock" id="c17-cont">Continuous ID process — inactive until people are engaged</div>
+      </div>
+    </div>`,
+    wire(api){
+      const risks = {
+        s1:"Village access disputes could halt installation",
+        s2:"Certification rules differ per district — scope risk",
+        s3:"Filtration membranes degrade faster in local water"
+      };
+      let seated = 0;
+      api.caption("Three stakeholders wait in the tray. Each one you seat lights up risks nobody inside the team could see. Note the two locked mechanisms on the right.");
+      dragger(api,{
+        pairs:{s1:"table",s2:"table",s3:"table"}, required:["s1","s2","s3"],
+        captions:{},
+        onPlace(t,z,ok){
+          if(!ok) return;
+          seated++;
+          const reg = document.getElementById("c17-reg");
+          reg.insertAdjacentHTML("beforeend", `<span class="ticker calm" style="text-transform:none;letter-spacing:0"><span class="blip"></span> ${esc(risks[t])}</span>`);
+          if(seated===1) api.caption("First voice at the table, first blip on the radar — a risk no internal brainstorm would have produced. The register is being born from people, not process.");
+          if(seated===2) api.caption("Second stakeholder, second class of risk. Notice the reserves stay locked: no analysis has happened, so no number can honestly exist yet.");
+          if(seated===3){
+            document.getElementById("c17-cont").classList.add("open");
+            document.getElementById("c17-cont").textContent="Continuous ID process — ACTIVE ✓ (it finally has people to run on)";
+            api.caption("<b>Everyone seated, register baselined.</b> Now the continuous identification process activates — process works when it has people to run on. Plan revisions and reserves stay downstream. People first; everything else after.");
+          }
+        }
+      });
+    },
+    rule:"Risk management starts with people: engage stakeholders, baseline the register. Continuous processes, plan revisions, and reserves all come after.",
+    trap:"Plan versus register is a recurring trick. The plan is the how — stable. The register is the what — living. New risks touch the register."
+  },
+  { title:"Keep Finding People", mech:"machine",
+    lede:"Stakeholders hold concerns they've never voiced — and unvoiced concerns are unidentified risks. Scrub the project timeline twice: once with stakeholder identification frozen after kickoff, once with it running continuously. Count what slips past.",
+    found:["riskdocs"],
+    html:`<div class="world-switch">
+      <button class="wbtn cur" id="c18-off">ID stops at kickoff</button>
+      <button class="wbtn" id="c18-on" disabled>Continuous identification</button>
+    </div>
+    <div class="sldwrap">
+      <div class="mlabel"><span>Project timeline</span><b id="c18-ph">Kickoff</b></div>
+      <input type="range" id="c18-sld" min="0" max="100" value="0" step="1" aria-label="Timeline position">
+      <div class="sld-marks"><span>kickoff</span><span>design</span><span>build</span><span>rollout</span></div>
+    </div>
+    <div class="srow">
+      <div class="nbox" style="flex:1"><span class="nb-t">New voices appearing</span><span class="nb-s">mid-project stakeholders</span><div id="c18-people" style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap"></div></div>
+      <div class="nbox" style="flex:1"><span class="nb-t">Their risks</span><span class="nb-s" id="c18-caught">—</span><div id="c18-risks" style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap"></div></div>
+    </div>`,
+    wire(api){
+      api.caption("Pass one: identification stopped at kickoff. Scrub the timeline to the end and watch the edges.");
+      const sld=document.getElementById("c18-sld"), ph=document.getElementById("c18-ph");
+      const people=document.getElementById("c18-people"), risks=document.getElementById("c18-risks"), caught=document.getElementById("c18-caught");
+      const appear=[{at:30,name:"New supplier"},{at:55,name:"Regulator (rule change)"},{at:80,name:"Ops team (handover)"}];
+      let mode="off", shown=new Set(), passOffDone=false;
+      function reset(){ shown.clear(); people.innerHTML=""; risks.innerHTML=""; caught.textContent="—"; sld.value=0; ph.textContent="Kickoff"; }
+      sld.addEventListener("input", ()=>{
+        const v=+sld.value;
+        ph.textContent = v<25?"Kickoff":v<50?"Design":v<80?"Build":"Rollout";
+        appear.forEach(p=>{
+          if(v>=p.at && !shown.has(p.name)){
+            shown.add(p.name);
+            people.insertAdjacentHTML("beforeend",`<span class="cardlet" style="padding:4px 8px"><span class="cl-s">${esc(p.name)}</span></span>`);
+            risks.insertAdjacentHTML("beforeend",`<span class="blip ${mode==="off"?"missed":""}"></span>`);
+          }
+        });
+        if(mode==="off") caught.textContent = shown.size? shown.size+" risks UNHEARD" : "—";
+        else caught.textContent = shown.size? shown.size+" risks caught in register ✓" : "—";
+        if(v>=100){
+          if(mode==="off" && !passOffDone){
+            passOffDone=true;
+            document.getElementById("c18-on").disabled=false;
+            api.caption("Three new stakeholders appeared after kickoff — and all three of their risk sets flew past, red and uncaught. Nobody was listening anymore. Now flip to <b>continuous identification</b> and scrub again.");
+            document.getElementById("c18-on").addEventListener("click", ()=>{
+              mode="on"; reset();
+              document.getElementById("c18-on").classList.add("cur");
+              document.getElementById("c18-off").classList.remove("cur");
+              api.caption("Pass two: the identification strategy never stops. Scrub to the end.");
+            });
+          }else if(mode==="on"){
+            api.caption("<b>Same project, same surprises — zero missed.</b> Continuous stakeholder identification keeps risk awareness alive for the whole lifecycle, because risks surface through people. A category framework like PESTLE can't hear a stakeholder nobody has met.");
+            api.complete();
+          }
+        }
+      });
+      api.ctrl.innerHTML="";
+    },
+    rule:"Unvoiced stakeholder concerns signal missing stakeholders. Keep identification continuous — risks surface through people, not frameworks.",
+    trap:"PESTLE glitters because it sounds rigorous. Match the tool to the stated gap: people not being heard, not categories not being scanned."
+  },
+  { title:"Import Expertise", mech:"machine",
+    lede:"Your team mapped the standard risks — and stakeholders are right that integration seams and regulatory corners sit outside the team's own knowledge. A flashlight can't illuminate what it can't reach. Try the cheap options, then bring in the beam that actually covers the dark.",
+    found:["qq"],
+    html:`<div class="token-tray"><span class="tray-label">Ways to find more risks</span>
+      <button class="token" data-token="brainstorm">More team brainstorming</button>
+      <button class="token" data-token="history">Review historical data</button>
+      <button class="token" data-token="sme">External SMEs</button></div>
+    <div class="srow">
+      <div class="zone" data-zone="map" style="flex:2"><span class="zlabel">Coverage map</span>
+        <div class="srow">
+          <div class="cardlet lit"><span class="cl-t">Standard tech risks</span><span class="cl-s">team's beam ✓</span></div>
+          <div class="cardlet lit"><span class="cl-t">Schedule risks</span><span class="cl-s">team's beam ✓</span></div>
+          <div class="cardlet dead" id="c19-z1"><span class="cl-t">Integration seams</span><span class="cl-s">dark</span></div>
+          <div class="cardlet dead" id="c19-z2"><span class="cl-t">Regulatory corners</span><span class="cl-s">dark</span></div>
+        </div>
+        <div class="zslot"></div>
+      </div>
+    </div>`,
+    wire(api){
+      api.caption("Two zones glow — the team's own beam. Two stay dark. Drop each option onto the coverage map and watch what it illuminates. Deadline's tight, so notice speed, too.");
+      dragger(api,{
+        pairs:{sme:"map"}, required:["sme"],
+        captions:{
+          "brainstorm>map":"The team's beam re-sweeps its own circle — brighter, not wider. Brainstorming recombines knowledge the room already has, and the register bloats with variations of known risks. The dark zones stay dark.",
+          "history>map":"An old map overlays: faded, similar-but-not-this project. Some overlap, real gaps — history can't see what's unique about this integration. Cheap, but the dark corners remain.",
+          "sme>map":"<b>New beams switch on.</b> External subject matter experts carry the functional knowledge the team lacks — they validate the existing register fast and light up vulnerabilities insiders can't see. Exactly fits a tight deadline, too."
+        },
+        onPlace(t,z,ok){
+          if(ok){
+            ["c19-z1","c19-z2"].forEach((id,i)=>setTimeout(()=>{
+              const el=document.getElementById(id);
+              el.classList.remove("dead"); el.classList.add("lit");
+              el.querySelector(".cl-s").textContent="SME beam ✓";
+            }, 200*i));
+          }
+        }
+      });
+    },
+    rule:"When the team's own knowledge is the identified gap, bring expertise in. SMEs validate fast and see what insiders can't.",
+    trap:"'More brainstorming' flatters the team and 'review history' sounds cheap — both recycle the same insufficient knowledge base the stakeholders flagged."
+  },
+  { title:"Qualitative First", mech:"machine",
+    lede:"The sponsor wants to know which risks deserve attention — by the next meeting. That word, 'prioritize,' names a specific tool: fast probability-times-impact triage. Sort the register onto the matrix and watch the heavy machinery stay parked until it's earned.",
+    found:["qq","reserves"],
+    html:`<div class="token-tray"><span class="tray-label">Risk register — drag each onto the matrix</span>
+      <button class="token" data-token="r1">Permit delay — likely · severe</button>
+      <button class="token" data-token="r2">Key vendor wobble — likely · moderate</button>
+      <button class="token" data-token="r3">Minor UI rework — unlikely · mild</button></div>
+    <div class="srow">
+      <div class="scol" style="flex:2">
+        <div class="srow" style="gap:8px">
+          <div class="zone" data-zone="high" style="border-color:color-mix(in srgb, var(--danger) 50%, var(--line))"><span class="zlabel" style="color:var(--danger)">HIGH priority</span><span class="zsub">likely × severe</span><div class="zslot"></div></div>
+          <div class="zone" data-zone="mid"><span class="zlabel" style="color:var(--ac)">MEDIUM</span><span class="zsub">watch + respond</span><div class="zslot"></div></div>
+          <div class="zone" data-zone="low"><span class="zlabel">LOW</span><span class="zsub">accept / monitor</span><div class="zslot"></div></div>
+        </div>
+      </div>
+      <div class="scol" style="flex:1">
+        <div class="gatelock" id="c20-quant">Quantitative analysis — parked · awaits prioritized input</div>
+        <div class="gatelock" id="c20-mc">Monte Carlo — parked</div>
+      </div>
+    </div>`,
+    wire(api){
+      api.caption("No simulations, no exposure math — just probability × impact judgment. Place all three risks where they belong.");
+      dragger(api,{
+        pairs:{r1:"high",r2:"mid",r3:"low"}, required:["r1","r2","r3"],
+        captions:{
+          "r1>high":"Likely and severe — top of the sponsor's list. Qualitative triage took seconds, not a simulation run.",
+          "r2>mid":"Real but moderate — watch it, prepare a response, don't drown it in math yet.",
+          "r3>low":"Unlikely and mild — accept and monitor. Spending Monte Carlo cycles here would be analysis cosplay.",
+          ">high":"Feel the mismatch — probability × impact says this doesn't belong at the top.",
+          ">mid":"Check the labels again — P × I puts this one elsewhere.",
+          ">low":"That risk is too hot to park in the accept pile — re-read its probability and impact."
+        },
+        onPlace(t,z,ok){
+          if(!ok) return;
+          const done = api.scene.querySelectorAll(".token.placed").length;
+          if(done===3){
+            const q=document.getElementById("c20-quant"), mc=document.getElementById("c20-mc");
+            q.classList.add("open"); q.textContent="Quantitative analysis — UNLOCKED for HIGH risks only ✓";
+            mc.classList.add("open"); mc.textContent="Monte Carlo — fed by the prioritized subset ✓";
+            api.caption("<b>Register prioritized.</b> Now — and only for the high cluster — the quantitative machinery unlocks. Qualitative sorts everything cheaply; quantitative models the survivors expensively. Experts can validate entries, but validation isn't prioritization.");
+          }
+        }
+      });
+    },
+    rule:"Prioritization means qualitative analysis — probability and impact. Quantitative tools and Monte Carlo enter later, only for what survives the filter.",
+    trap:"Note the flip from the previous concept: there, SMEs were right because knowledge was the gap. Here the gap is ranking, and SMEs are the decoy. The stated need picks the tool."
+  }
+]},
+
+/* ================= THEME 6 : VALUE & LEADING ================= */
+{
+  id:"value", color:"#ff7847", title:"Value & Leading Indicators",
+  tag:"Measure what predicts, decide by business value, and aim interventions at the diagnosed gap — not at generic virtues.",
+  primer:{
+    title:"Leading vs. lagging",
+    html:`<div class="scol">
+      <div class="srow center">
+        <div class="nbox" data-on="1"><span class="nb-t">Team engagement dips</span><span class="nb-s">week 3 · LEADING — warns</span></div>
+        <span class="arrowc" data-on="2">→</span>
+        <div class="nbox bad" data-on="2"><span class="nb-t">THE DAMAGE</span><span class="nb-s">delivery slips · week 6</span></div>
+        <span class="arrowc" data-on="3">→</span>
+        <div class="nbox" data-on="3"><span class="nb-t">Defect density · surveys · reviews</span><span class="nb-s">weeks 7-10 · LAGGING — explain</span></div>
+      </div>
+    </div>`,
+    wire(api){ stepper(api,[
+      "One timeline, one damage event, and two kinds of metric — sorted by which side of the damage they fire on.",
+      "<b>Leading indicators</b> fire before the damage: engagement dropping, cycle time creeping. They buy you time to act. That's the entire value proposition.",
+      "The damage itself: delivery slips. Everything measured after this point can only be an autopsy…",
+      "…and that's what <b>lagging indicators</b> are: defect density at iteration end, customer surveys, social reviews. Precise, objective — and too late to warn anyone. To anticipate, govern with metrics from the left side of the damage."
+    ]); }
+  },
+  concepts:[
+  { title:"Leading, Not Lagging", mech:"machine",
+    lede:"The sponsor wants governance metrics that anticipate delivery risk. Scrub through ten weeks of a project's life and watch when each candidate metric actually fires — before the damage, or safely, uselessly after it.",
+    found:["leadlag"],
+    html:`<div class="sldwrap">
+      <div class="mlabel"><span>Week</span><b id="c21-wk">1</b></div>
+      <input type="range" id="c21-sld" min="1" max="10" value="1" step="1" aria-label="Week">
+      <div class="sld-marks"><span>wk 1</span><span>wk 5</span><span>wk 10</span></div>
+    </div>
+    <div class="srow">
+      <div class="cardlet" id="c21-eng"><span class="cl-t">Team engagement</span><span class="cl-s" id="c21-eng-s">steady</span></div>
+      <div class="cardlet dead" id="c21-slip"><span class="cl-t">DELIVERY SLIP</span><span class="cl-s">the damage — week 6</span></div>
+      <div class="cardlet dead" id="c21-def"><span class="cl-t">Defect density</span><span class="cl-s">iteration end</span></div>
+      <div class="cardlet dead" id="c21-cs"><span class="cl-t">Customer satisfaction</span><span class="cl-s">post-release</span></div>
+      <div class="cardlet dead" id="c21-sm"><span class="cl-t">Social media reviews</span><span class="cl-s">post-launch</span></div>
+    </div>
+    <div class="srow"><div style="flex:1">
+      <div class="mlabel"><span>Time left to act when the metric fires</span><b id="c21-window">—</b></div>
+      <div class="meter" id="c21-wm"><i style="width:0%"></i></div>
+    </div></div>`,
+    wire(api){
+      api.caption("Drag through the weeks. Watch which metric is first to know — and how much runway each one leaves you.");
+      const sld=document.getElementById("c21-sld");
+      const fired=new Set();
+      sld.addEventListener("input", ()=>{
+        const w=+sld.value;
+        document.getElementById("c21-wk").textContent=w;
+        const wm=document.getElementById("c21-wm"), win=document.getElementById("c21-window");
+        if(w>=3 && !fired.has("eng")){
+          fired.add("eng");
+          const e=document.getElementById("c21-eng");
+          e.classList.add("lit"); document.getElementById("c21-eng-s").textContent="DROPPING — week 3 ⚠";
+          wm.querySelector("i").style.width="100%"; win.textContent="3 weeks of runway";
+          api.caption("<b>Week 3:</b> engagement dips — burnout, unclear goals, conflict brewing. Nothing has slipped yet. This is a <b>leading</b> indicator firing with three whole weeks of runway. This is what 'anticipate' means.");
+        }
+        if(w>=6 && !fired.has("slip")){
+          fired.add("slip");
+          const s=document.getElementById("c21-slip"); s.classList.remove("dead");
+          s.style.borderColor="var(--danger)";
+          wm.querySelector("i").style.width="0%"; win.textContent="0 — damage done";
+          api.caption("<b>Week 6:</b> the delivery slips. From here on, every metric that fires is an autopsy report.");
+        }
+        if(w>=7 && !fired.has("def")){ fired.add("def"); document.getElementById("c21-def").classList.remove("dead");
+          api.caption("<b>Week 7:</b> defect density spikes at iteration end. Sounds like engineering rigor — but it's measured after the work was built. Lagging."); }
+        if(w>=9 && !fired.has("cs")){ fired.add("cs"); document.getElementById("c21-cs").classList.remove("dead");
+          api.caption("<b>Week 9:</b> customer satisfaction dips, post-release. Reactive by definition."); }
+        if(w>=10 && !fired.has("sm")){ fired.add("sm"); document.getElementById("c21-sm").classList.remove("dead");
+          api.caption("<b>Week 10:</b> the bad reviews arrive — doubly lagging, and public. Final tally: one metric warned with runway to spare; three explained the corpse. Govern with the one that warns.");
+          api.complete(); }
+      });
+      api.ctrl.innerHTML="";
+    },
+    rule:"To anticipate risk, choose leading indicators. Anything measured after the work ships can only explain — never warn.",
+    trap:"Defect density sounds rigorous. Timing is the tell: ask of any metric — does it fire before or after the damage?"
+  },
+  { title:"Forecast From Facts", mech:"machine",
+    lede:"Political risk just compressed your timeline, and the sponsor needs delay numbers for a go/no-go — now. You have six sprints of actual velocity. Extend the trend and watch a defensible forecast assemble itself, while the speculative alternative wobbles beside it.",
+    found:["leadlag"],
+    html:`<svg viewBox="0 0 560 220" style="width:100%;max-width:560px;display:block;margin:0 auto" aria-label="Velocity trend chart">
+      <line x1="40" y1="180" x2="540" y2="180" stroke="var(--line)" stroke-width="1"/>
+      <line x1="40" y1="20" x2="40" y2="180" stroke="var(--line)" stroke-width="1"/>
+      <text x="40" y="200" fill="var(--dim)" font-size="10">sprint 1</text>
+      <text x="250" y="200" fill="var(--dim)" font-size="10">sprint 6 · today</text>
+      <text x="470" y="200" fill="var(--dim)" font-size="10">go/no-go</text>
+      <line x1="270" y1="20" x2="270" y2="180" stroke="var(--line)" stroke-width="1" stroke-dasharray="3 4"/>
+      <polyline points="40,70 86,84 132,80 178,98 224,104 270,118" fill="none" stroke="var(--ac)" stroke-width="2"/>
+      <circle cx="270" cy="118" r="4" fill="var(--ac)"/>
+      <polyline id="c22-fc" points="270,118 270,118" fill="none" stroke="var(--ac)" stroke-width="2" stroke-dasharray="6 5"/>
+      <path id="c22-ghost" d="M270,118" fill="none" stroke="var(--dim)" stroke-width="1.5" stroke-dasharray="2 5" opacity="0"/>
+      <text id="c22-ghost-t" x="380" y="50" fill="var(--dim)" font-size="10" opacity="0">scenario model — no data under it</text>
+    </svg>
+    <div class="sldwrap">
+      <div class="mlabel"><span>Extend trend from actuals</span><b id="c22-out">—</b></div>
+      <input type="range" id="c22-sld" min="0" max="6" value="0" step="1" aria-label="Weeks of forecast">
+    </div>`,
+    wire(api){
+      api.caption("Six sprints of real velocity, already declining. Drag to project the trend toward the go/no-go line.");
+      const sld=document.getElementById("c22-sld"), fc=document.getElementById("c22-fc"), out=document.getElementById("c22-out");
+      let maxed=false;
+      sld.addEventListener("input", ()=>{
+        const n=+sld.value;
+        let pts="270,118";
+        for(let i=1;i<=n;i++) pts += ` ${270+i*45},${118+i*7.5}`;
+        fc.setAttribute("points", pts);
+        out.textContent = n===0?"—":`projected delay: ${(n*0.8).toFixed(1)} wks · penalty exposure grows`;
+        if(n>=3){
+          document.getElementById("c22-ghost").setAttribute("d","M270,118 C320,60 360,160 410,80 S500,150 540,60");
+          document.getElementById("c22-ghost").setAttribute("opacity",".7");
+          document.getElementById("c22-ghost-t").setAttribute("opacity","1");
+        }
+        if(n===6 && !maxed){
+          maxed=true;
+          api.caption("The dashed projection reaches the decision line: <b>≈4.8 weeks late</b>, grounded in actual performance. Beside it, the grey squiggle — scenario models with no data underneath — wobbles anywhere it likes. Workshops identify risks; compression explores recovery; only the trend answers the sponsor's actual question: how late, and what does it cost?");
+          api.ctrl.innerHTML=`<button class="actbtn" data-act="ship">Deliver forecast to sponsor</button>`;
+          api.ctrl.querySelector("[data-act=ship]").addEventListener("click",()=>{
+            api.ctrl.querySelector("[data-act=ship]").classList.add("hidden");
+            api.complete();
+          });
+        }
+      });
+      api.ctrl.innerHTML="";
+    },
+    rule:"'Immediate visibility on delays' = forecast from actual performance data. Trend analysis answers what sponsors are really asking: how late, and what does it cost?",
+    trap:"Fancy techniques — compression analysis, scenario planning — answer questions nobody asked. The sponsor wants a forecast, not a workshop."
+  },
+  { title:"Value Decides", mech:"machine",
+    lede:"Supply chain failure, critical path threatened, penalty clauses looming — and a big tempting button that postpones everything at once. Before touching it, turn over the affected work items and see what they're actually worth. Then decide like someone who knows.",
+    found:[],
+    html:`<div class="srow" id="c23-items">
+      <button class="cardlet" data-item="a" data-v="HIGH"><span class="cl-t">Item A</span><span class="cl-s">value: ▮▮▮ tap to reveal</span></button>
+      <button class="cardlet" data-item="b" data-v="LOW"><span class="cl-t">Item B</span><span class="cl-s">value: ▮▮▮ tap to reveal</span></button>
+      <button class="cardlet" data-item="c" data-v="HIGH"><span class="cl-t">Item C</span><span class="cl-s">value: ▮▮▮ tap to reveal</span></button>
+      <button class="cardlet" data-item="d" data-v="MED"><span class="cl-t">Item D</span><span class="cl-s">value: ▮▮▮ tap to reveal</span></button>
+      <button class="cardlet" data-item="e" data-v="LOW"><span class="cl-t">Item E</span><span class="cl-s">value: ▮▮▮ tap to reveal</span></button>
+    </div>
+    <div class="srow" id="c23-lanes" style="display:none">
+      <div class="zone"><span class="zlabel" style="color:var(--danger)">High value — renegotiate supply at any cost</span><div id="c23-hi" class="zslot"></div></div>
+      <div class="zone"><span class="zlabel">Medium — re-sequence</span><div id="c23-md" class="zslot"></div></div>
+      <div class="zone"><span class="zlabel">Low — postpone / cut</span><div id="c23-lo" class="zslot"></div></div>
+    </div>`,
+    wire(api){
+      api.caption("Five affected items, values hidden. The reflex options are on the buttons below — but try turning the cards first.");
+      api.ctrl.innerHTML=`<button class="actbtn danger" data-act="panic">POSTPONE EVERYTHING</button><button class="actbtn hidden" data-act="prio">Reprioritize by value</button>`;
+      let revealed=0;
+      const items=api.scene.querySelectorAll("[data-item]");
+      items.forEach(it=>it.addEventListener("click", ()=>{
+        if(it.classList.contains("on")) return;
+        it.classList.add("on");
+        const v=it.dataset.v;
+        it.querySelector(".cl-s").textContent="value: "+v;
+        if(v==="HIGH") it.style.borderColor="var(--danger)";
+        revealed++;
+        if(revealed===1) api.caption("First card turned. Thirty seconds of value reassessment — already more informed than any reflex.");
+        if(revealed===5){
+          api.caption("All values visible: two high, one medium, two low. <b>Now</b> a decision exists to be made. Hit reprioritize.");
+          api.ctrl.querySelector("[data-act=prio]").classList.remove("hidden");
+        }
+      }));
+      api.ctrl.querySelector("[data-act=panic]").addEventListener("click", ()=>{
+        api.caption("Everything postponed — including the two items your customer values most. The penalties you feared? Still coming, plus renegotiation from a position of surprise. Blanket moves made before value is known aren't decisions; they're reflexes. Turn the cards.");
+      });
+      api.ctrl.querySelector("[data-act=prio]").addEventListener("click", ()=>{
+        document.getElementById("c23-lanes").style.display="flex";
+        items.forEach(it=>{
+          const lane = it.dataset.v==="HIGH"?"c23-hi":it.dataset.v==="MED"?"c23-md":"c23-lo";
+          document.getElementById(lane).appendChild(it);
+          it.disabled=true;
+        });
+        api.ctrl.querySelectorAll(".actbtn").forEach(b=>b.classList.add("hidden"));
+        api.caption("<b>Sorted by value.</b> Low-value items postpone painlessly; high-value items justify renegotiation; the medium re-sequences. Notifying stakeholders comes next — and now the message contains a plan instead of a shrug.");
+        api.complete();
+      });
+    },
+    rule:"Disruption response starts by re-ranking the affected work by business value. Every other move — postpone, notify, re-slice — follows from that ranking.",
+    trap:"Under time pressure, doing something visible feels right. The exam rewards the 30-minute value reassessment that makes the eventual action correct."
+  },
+  { title:"Aim at the Diagnosed Gap", mech:"machine",
+    lede:"The diagnosis is printed on the readout: the resource management process needs refinement. Now aim your one intervention. Generic virtues scatter wide; one target matches the finding exactly. Drag the crosshair.",
+    found:[],
+    html:`<div class="srow center">
+      <div class="nbox bad"><span class="nb-t">DIAGNOSIS READOUT</span><span class="nb-s">missed milestones · resource allocation issues · resource management process needs refinement</span></div>
+    </div>
+    <div class="token-tray"><span class="tray-label">Your one intervention</span>
+      <button class="token" data-token="x">⌖ Aim intervention</button></div>
+    <div class="srow">
+      <div class="zone" data-zone="comms"><span class="zlabel">Open communication</span><span class="zsub">keep everyone informed</span><div class="zslot"></div></div>
+      <div class="zone" data-zone="trust"><span class="zlabel">Collaboration & trust</span><span class="zsub">team-building push</span><div class="zslot"></div></div>
+      <div class="zone" data-zone="method"><span class="zlabel">Overhaul org methodologies</span><span class="zsub">fix it everywhere</span><div class="zslot"></div></div>
+      <div class="zone" data-zone="experts"><span class="zlabel">Engage resource-mgmt experts</span><span class="zsub">tailored stakeholder engagement</span><div class="zslot"></div></div>
+    </div>
+    <div class="srow"><div style="flex:1">
+      <div class="mlabel"><span>Gap: resource utilization</span><b id="c24-gap">wide open</b></div>
+      <div class="meter danger" id="c24-meter"><i style="width:85%"></i></div>
+    </div></div>`,
+    wire(api){
+      api.caption("The gap meter shows the diagnosed problem, wide open. Aim anywhere — wrong targets show their scatter.");
+      dragger(api,{
+        pairs:{x:"experts"}, required:["x"],
+        captions:{
+          "x>comms":"Wide scatter. Everyone is now <b>informed</b> about the allocation problems… which continue unchanged. Awareness of a gap is not a fix for it.",
+          "x>trust":"Wide scatter. The team trusts each other more and collaborates beautifully — around the same broken allocation process. Generic virtue, wrong coordinates.",
+          "x>method":"Barrier: OUT OF AUTHORITY. Organizational methodology updates are above project level. The finding was about this project's process — aim inside your own authority.",
+          "x>experts":"<b>Lock-on.</b> Stakeholders whose expertise matches the broken process, engaged specifically to refine it. The intervention's coordinates come straight off the diagnosis readout — watch the gap close."
+        },
+        onPlace(t,z,ok){
+          if(ok){
+            const m=document.getElementById("c24-meter"), g=document.getElementById("c24-gap");
+            m.classList.remove("danger"); m.querySelector("i").style.width="14%";
+            g.textContent="closing ✓"; g.style.color="var(--ac)";
+          }
+        }
+      });
+    },
+    rule:"Point the intervention at the diagnosed gap — engage the people whose expertise matches the broken process. Named problem beats generic virtue.",
+    trap:"Collaboration! Communication! Trust! When a scenario names a specific process failure, the warm-and-fuzzy options are decoys. Match the fix to the finding."
+  }
+]},
+
+/* ================= THEME 7 : GOVERNANCE ================= */
+{
+  id:"gov", color:"#5b8cff", title:"Governance Across Borders",
+  tag:"Design governance with expert validation and escalation paths — and hand teams the compliance sources the organization already owns.",
+  primer:{
+    title:"Plan design vs. execution — and where compliance answers live",
+    html:`<div class="scol">
+      <div class="nbox" data-on="1"><span class="nb-t">GOVERNANCE PLAN — design layer</span><span class="nb-s">decision rights · escalation procedures · legal/compliance validation · thresholds</span></div>
+      <div class="nbox" data-on="2"><span class="nb-t">EXECUTION LAYER</span><span class="nb-s">training · audits · reviews — they deliver the design, they aren't the design</span></div>
+      <div class="nbox" data-on="3"><span class="nb-t">COMPLIANCE SOURCE CABINET</span><span class="nb-s">OPAs (policies · standards) + project charter — validated, in-house, instant</span></div>
+    </div>`,
+    wire(api){ stepper(api,[
+      "Three layers to keep straight — the two misses in this theme each blurred one boundary.",
+      "The <b>governance plan</b> is architecture: who decides, how conflicts escalate, which experts validate. When a question asks about the plan, it wants elements from this layer.",
+      "<b>Training and audits</b> are execution — valuable, but they deliver governance rather than constitute it. A training program in a governance-design question is a category error.",
+      "And when a team asks 'which rules apply to us?' — the validated answer usually already exists in the <b>OPA cabinet and the charter</b>. Check what you own before commissioning anything."
+    ]); }
+  },
+  concepts:[
+  { title:"Two Anchors of Global Governance", mech:"machine",
+    lede:"One corporate HQ with strict standards, two host countries with looser ones, and a governance plan to build across the gap. Four components sit in the tray — but this bridge holds on exactly two anchors. Install pieces, then hit the storm test.",
+    found:["govplan"],
+    html:`<div class="token-tray"><span class="tray-label">Governance components</span>
+      <button class="token" data-token="legal">Legal + compliance validation</button>
+      <button class="token" data-token="esc">Escalation procedures</button>
+      <button class="token" data-token="exc">Local ethics exceptions</button>
+      <button class="token" data-token="train">Local ethics training</button></div>
+    <div class="srow">
+      <div class="nbox on" style="flex:0 0 auto"><span class="nb-t">HQ</span><span class="nb-s">strict standards</span></div>
+      <div class="zone" data-zone="a1" style="flex:1"><span class="zlabel">Anchor slot 1</span><div class="zslot"></div></div>
+      <div class="zone" data-zone="a2" style="flex:1"><span class="zlabel">Anchor slot 2</span><div class="zslot"></div></div>
+      <div class="nbox" style="flex:0 0 auto"><span class="nb-t">Local sites ×2</span><span class="nb-s">looser labor + ethics law</span></div>
+    </div>
+    <div class="srow" id="c25-storm" style="display:none; position:relative; overflow:hidden; border:1px solid var(--line); border-radius:10px; padding:10px 14px">
+      <span class="ticker" id="c25-storm-t">CONFLICT STORM: local practice vs corporate standard…</span>
+    </div>`,
+    wire(api){
+      api.caption("Drag components into the two anchor slots. The wrong ones will tell you exactly how they fail. Both slots accept either correct anchor.");
+      let anchors=0;
+      const good={legal:"Anchor set: <b>expert validation</b>. Legal and compliance confirm the plan satisfies every jurisdiction while holding corporate integrity — the exact tension the scenario names.",
+                  esc:"Anchor set: <b>designed-in escalation</b>. Local-vs-corporate conflicts are inevitable; the plan resolves them transparently and consistently, by architecture instead of improvisation."};
+      /* bespoke drag: both anchor slots accept either correct anchor */
+      api.scene.querySelectorAll(".token").forEach(tok=>{
+        tok.addEventListener("pointerdown", e=>{
+          if(tok.classList.contains("placed")||tok.classList.contains("spent")) return;
+          e.preventDefault(); tok.setPointerCapture(e.pointerId); tok.classList.add("dragging");
+          const sx=e.clientX, sy=e.clientY;
+          tok.style.zIndex=50;
+          let hot=null;
+          const move=ev=>{
+            tok.style.transform=`translate(${ev.clientX-sx}px, ${ev.clientY-sy}px)`;
+            tok.style.visibility="hidden";
+            const u=document.elementFromPoint(ev.clientX,ev.clientY);
+            tok.style.visibility="";
+            const z=u&&u.closest?u.closest("[data-zone]"):null;
+            if(hot&&hot!==z) hot.classList.remove("hot");
+            hot=z; if(z) z.classList.add("hot");
+          };
+          const up=ev=>{
+            tok.releasePointerCapture(e.pointerId);
+            tok.removeEventListener("pointermove",move); tok.removeEventListener("pointerup",up);
+            tok.classList.remove("dragging");
+            tok.style.zIndex="";tok.style.transform="";
+            if(hot) hot.classList.remove("hot");
+            if(!hot) return;
+            const id=tok.dataset.token;
+            const occupied = hot.querySelector(".token.placed");
+            if(id==="legal"||id==="esc"){
+              if(occupied){ hot.classList.add("bad"); setTimeout(()=>hot.classList.remove("bad"),600); api.caption("That slot is taken — use the other anchor slot."); return; }
+              hot.classList.add("ok"); hot.querySelector(".zslot").appendChild(tok); tok.classList.add("placed");
+              anchors++; api.caption(good[id]);
+              if(anchors===2){
+                api.ctrl.innerHTML=`<button class="actbtn" data-act="storm">⚡ Run conflict storm test</button>`;
+                api.ctrl.querySelector("[data-act=storm]").addEventListener("click",()=>{
+                  const s=document.getElementById("c25-storm"); s.style.display="flex";
+                  setTimeout(()=>{
+                    document.getElementById("c25-storm-t").textContent="STORM RESOLVED — conflict caught by escalation path, judged against validated standards. Bridge holds. ✓";
+                    document.getElementById("c25-storm-t").classList.add("calm");
+                    api.ctrl.querySelector("[data-act=storm]").classList.add("hidden");
+                    api.complete();
+                  }, 1400);
+                });
+              }
+            }else if(id==="exc"){
+              hot.classList.add("bad"); setTimeout(()=>hot.classList.remove("bad"),700);
+              tok.classList.add("spent");
+              api.caption("The deck <b>cracks</b>. Delegating ethics exceptions to each country guarantees inconsistent standards — and formally stamps the exact reputational risk the product owner feared. Removed from the build.");
+            }else{
+              hot.classList.add("bad"); setTimeout(()=>hot.classList.remove("bad"),700);
+              tok.classList.add("spent");
+              api.caption("Training floats above the deck — genuinely useful, structurally irrelevant. It's an <b>execution activity</b>; it delivers governance but cannot hold the bridge up. Wrong layer for a plan question.");
+            }
+          };
+          tok.addEventListener("pointermove",move); tok.addEventListener("pointerup",up);
+        });
+      });
+    },
+    rule:"Global governance stands on two anchors: expert validation (legal + compliance) and designed-in escalation paths. Never delegate ethics downward; training is execution, not governance.",
+    trap:"The training option is the sophisticated decoy — a good idea at the wrong altitude. Governance-plan questions want plan elements, not delivery activities."
+  },
+  { title:"The Guidance Already Exists", mech:"flow",
+    lede:"Mid-workshop, engineers ask which safety and environmental protocols must govern the design. Three procurement-shaped reflexes start their clocks — hiring, benchmarking, research. Meanwhile the answer is sitting in a cabinet the organization already owns. Open it.",
+    found:["opa"],
+    html:`<div class="srow">
+      <div class="nbox bad" data-off="1"><span class="nb-t">Design workshop</span><span class="nb-s">blocked on: which protocols apply?</span></div>
+      <div class="nbox on" data-show="1" data-on="1"><span class="nb-t">Design workshop</span><span class="nb-s">unblocked — designing against validated requirements ✓</span></div>
+    </div>
+    <div class="srow">
+      <div class="nbox" data-node="cab" ><span class="nb-t">OPA cabinet + project charter</span><span class="nb-s">tap to open</span></div>
+      <div class="cardlet" data-show="1"><span class="cl-t">Safety policies</span><span class="cl-s">validated · in force</span></div>
+      <div class="cardlet" data-show="1"><span class="cl-t">Environmental standards</span><span class="cl-s">validated · in force</span></div>
+      <div class="cardlet" data-show="1"><span class="cl-t">Charter requirements</span><span class="cl-s">project-specific compliance</span></div>
+    </div>
+    <div class="srow">
+      <div class="cardlet"><span class="cl-t">Hire compliance engineer</span><span class="cl-s" id="c26-h">clock: 6–8 weeks · budget impact</span></div>
+      <div class="cardlet"><span class="cl-t">Benchmark study</span><span class="cl-s" id="c26-b">clock: 4–6 weeks · likely redundant</span></div>
+      <div class="cardlet"><span class="cl-t">Mine lessons learned</span><span class="cl-s" id="c26-l">useful later · not authoritative</span></div>
+    </div>`,
+    wire(api){
+      api.caption("Three slow clocks are already ticking at the bottom. Or: tap the cabinet.");
+      seq(api,{
+        order:["cab"],
+        good:{cab:"<b>Cabinet open.</b> Validated policies, standards, and charter requirements slot straight into the workshop — zero delay, zero spend, full authority. The slow options below keep ticking… for a question that's already answered. Echo of Theme 1: if OPAs plausibly contain the answer, they are the answer."},
+        fizzle:{}
+      });
+      api.scene.querySelector("[data-node=cab]").addEventListener("click", ()=>{
+        applyStage(api.scene, 1);
+        ["c26-h","c26-b","c26-l"].forEach(id=>{
+          const el=document.getElementById(id);
+          el.textContent += " — unnecessary";
+          el.closest(".cardlet").classList.add("dead");
+        });
+      });
+    },
+    rule:"When authoritative compliance guidance already exists — OPAs, the charter — hand it to the team first. Hiring, benchmarking, and lesson-mining are later (and often unnecessary) steps.",
+    trap:"Commissioning research to rediscover what you already own is the decoy. Check the cabinet before starting any clock."
+  }
+]}
+];
+
+/* =============== STATE =============== */
+const LS = "be-deck-v2";
+let state = load();
+function load(){ try{ return JSON.parse(localStorage.getItem(LS)) || {done:{}} }catch(e){ return {done:{}} } }
+function save(){ try{ localStorage.setItem(LS, JSON.stringify(state)) }catch(e){} }
+const cid = (ti,ci)=>`${ti}-${ci}`;
+const isDone = (ti,ci)=>!!state.done[cid(ti,ci)];
+const themeDone = ti=>THEMES[ti].concepts.filter((_,ci)=>isDone(ti,ci)).length;
+const totalDone = ()=>THEMES.reduce((s,_,ti)=>s+themeDone(ti),0);
+const TOTAL = THEMES.reduce((s,t)=>s+t.concepts.length,0);
+
+/* =============== ROUTER =============== */
+const app = document.getElementById("app");
+window.addEventListener("hashchange", render);
+function go(h){ if(location.hash === "#"+h) render(); else location.hash = h; }
+function route(){
+  const h = location.hash.replace(/^#\/?/,"");
+  if(!h) return {v:"cover"};
+  if(h==="hub") return {v:"hub"};
+  if(h==="sheet") return {v:"sheet"};
+  let m;
+  if(m = h.match(/^t\/(\d+)$/)) return {v:"tintro", ti:+m[1]};
+  if(m = h.match(/^c\/(\d+)\/(\d+)$/)) return {v:"concept", ti:+m[1], ci:+m[2]};
+  return {v:"cover"};
+}
+
+/* =============== SHARED UI =============== */
+function ring(pct){
+  const r = 18, c = 2*Math.PI*r;
+  return `<span class="ring"><svg viewBox="0 0 44 44" aria-hidden="true">
+    <circle class="bgc" cx="22" cy="22" r="${r}"></circle>
+    <circle class="fgc" cx="22" cy="22" r="${r}" stroke-dasharray="${c}" stroke-dashoffset="${c*(1-pct)}"></circle>
+  </svg></span>`;
+}
+function topbar(crumb, ac, pct){
+  return `<div class="topbar" style="--ac:${ac}">
+    <button class="iconbtn" data-go="hub">◈ Hub</button>
+    <span class="crumb">${crumb}</span>
+    <span class="progress-rail" title="${totalDone()}/${TOTAL} concepts mastered"><i style="width:${(pct*100).toFixed(1)}%"></i></span>
+    <button class="iconbtn" data-go="sheet">Cheat sheet</button>
+  </div>`;
+}
+
+/* =============== VIEWS =============== */
+function vCover(){
+  const done = totalDone();
+  return `<section class="cover">
+    <div class="cover-grid"></div>
+    <span class="kicker rise" style="animation-delay:.05s">PMP · Business Environment · The Systems Deck</span>
+    <h1 class="rise" style="animation-delay:.15s">Don't answer.<br><span class="neon">Operate.</span></h1>
+    <p class="lede rise" style="animation-delay:.3s">No questions in this deck — instead, 26 small machines. Trip a governance threshold with your own hands. Drag knowledge into the place where it becomes standard. Scrub a timeline and watch leading indicators fire before lagging ones. Each system ends the same way: you say the rule from memory, then compare.</p>
+    <div class="cover-stats rise" style="animation-delay:.42s">
+      <div><b>26</b><span>systems</span></div>
+      <div><b>7</b><span>themes + primers</span></div>
+      <div><b>${done}<span style="font-size:1rem;color:var(--dim)">/${TOTAL}</span></b><span>mastered</span></div>
+    </div>
+    <button class="cta rise" style="animation-delay:.55s" data-go="hub">${done>0?"Continue":"Power up"} <span class="key">↵</span></button>
+    ${done>0?`<p class="resume rise" style="animation-delay:.65s">Progress saved in this browser — <b>${done} of ${TOTAL}</b> systems mastered.</p>`:""}
+  </section>`;
+}
+
+function vHub(){
+  const done = totalDone();
+  const mechCount = t=>t.concepts.length;
+  const cards = THEMES.map((t,ti)=>{
+    const d = themeDone(ti), n = mechCount(t), full = d===n;
+    return `<button class="tcard rise ${full?"done":""}" style="--ac:${t.color};animation-delay:${.06*ti}s" data-go="t/${ti}">
+      <span class="tno">THEME ${String(ti+1).padStart(2,"0")}${full?` <span class="chip">Mastered</span>`:""}</span>
+      <h3>${esc(t.title)}</h3>
+      <p>${esc(t.tag)}</p>
+      <span class="tfoot">${d}/${n} systems ${ring(d/n)}</span>
+    </button>`;
+  }).join("");
+  return `${topbar(`<b>${done}/${TOTAL}</b> mastered`, "#35e0ff", done/TOTAL)}
+  <section>
+    <div class="hub-head">
+      <div>
+        <span class="eyebrow">Machine room</span>
+        <h2>Seven systems to operate</h2>
+      </div>
+      <div class="overall"><span class="num">${Math.round(done/TOTAL*100)}%</span><br><span class="lbl">complete</span></div>
+    </div>
+    <p class="hub-sub">Each theme opens with a primer on the underlying framework, then hands you its machines. Drive every one to its end state, recall the rule, and the theme is yours.</p>
+    <div class="hub-grid">${cards}</div>
+    <button class="sheet-link" data-go="sheet"><span>EXAM-DAY CHEAT SHEET — all ${TOTAL} decision rules on one printable page</span><span class="arr">→</span></button>
+  </section>`;
+}
+
+function vTintro(ti){
+  const t = THEMES[ti];
+  const items = t.concepts.map((c,ci)=>{
+    const d = isDone(ti,ci);
+    return `<li class="rise" style="animation-delay:${.1+.05*ci}s"><button data-go="c/${ti}/${ci}">
+      <span class="cno">${String(ci+1).padStart(2,"0")}</span>
+      <span class="cname">${esc(c.title)}</span>
+      <span class="cmech">${esc(c.mech)}</span>
+      <span class="cstate ${d?"ok":""}">${d?"● mastered":"○ open"}</span>
+    </button></li>`;
+  }).join("");
+  return `${topbar(`Theme ${ti+1} — <b>${esc(t.title)}</b>`, t.color, totalDone()/TOTAL)}
+  <section class="tintro" style="--ac:${t.color}">
+    <span class="tno rise">THEME ${String(ti+1).padStart(2,"0")} · ${t.concepts.length} SYSTEMS</span>
+    <h2 class="rise" style="animation-delay:.08s; color:${t.color}; text-shadow:0 0 28px color-mix(in srgb, ${t.color} 40%, transparent)">${esc(t.title)}</h2>
+    <p class="tag rise" style="animation-delay:.16s">${esc(t.tag)}</p>
+    <div class="primer rise" style="animation-delay:.24s">
+      <div class="primer-head"><span class="eyebrow">Primer — ${esc(t.primer.title)}</span></div>
+      <div class="primer-body"><div class="scene" data-stage="0" id="primer-scene">${t.primer.html}</div></div>
+      <div class="stage-caption" id="primer-cap"></div>
+      <div class="stage-controls" id="primer-ctrl"></div>
+    </div>
+    <ol>${items}</ol>
+  </section>`;
+}
+
+function vConcept(ti,ci){
+  const t = THEMES[ti], c = t.concepts[ci];
+  const solved = isDone(ti,ci);
+  const dots = t.concepts.map((_,i)=>`<i class="${isDone(ti,i)?"on":""} ${i===ci?"cur":""}"></i>`).join("");
+  const lastInTheme = ci===t.concepts.length-1;
+  const nextGo = lastInTheme ? (ti<THEMES.length-1?`t/${ti+1}`:"sheet") : `c/${ti}/${ci+1}`;
+  const nextLabel = lastInTheme ? (ti<THEMES.length-1?`Theme ${ti+2} →`:"Cheat sheet →") : "Next →";
+  const chips = (c.found||[]).map(k=>`<button class="found-chip" data-found="${k}">◇ ${esc(FOUNDATIONS[k][0])}</button>`).join("");
+  return `${topbar(`Theme ${ti+1} · ${esc(t.title)} — <b>${ci+1}/${t.concepts.length}</b>`, t.color, totalDone()/TOTAL)}
+  <section class="concept" style="--ac:${t.color}">
+    <div class="chead rise">
+      <span class="eyebrow" style="color:${t.color}">System ${String(ci+1).padStart(2,"0")} / ${String(t.concepts.length).padStart(2,"0")} · ${esc(c.mech)}</span>
+      <h2>${esc(c.title)}</h2>
+      <p class="lede">${esc(c.lede)}</p>
+      ${chips?`<div class="found-row">${chips}</div><div id="found-pop"></div>`:""}
+    </div>
+    <div class="stage rise" style="animation-delay:.12s">
+      <div class="stage-head"><span class="eyebrow">Interactive — drive it to the end state</span><span class="mech">${esc(c.mech)}</span></div>
+      <div class="scene" data-stage="0" id="cscene">${c.html}</div>
+      <div class="stage-caption" id="ccap"></div>
+      <div class="stage-controls" id="cctrl"></div>
+    </div>
+    <div id="recall-slot">${solved?revealHtml(c,true):""}</div>
+    <div class="cnav">
+      <button class="navbtn" data-go="${ci>0?`c/${ti}/${ci-1}`:`t/${ti}`}">← Back</button>
+      <span class="spacer"></span>
+      <span class="dots">${dots}</span>
+      <span class="spacer"></span>
+      <button class="navbtn ${solved?"primary":""}" data-go="${nextGo}">${nextLabel}</button>
+    </div>
+  </section>`;
+}
+
+function recallHtml(){
+  return `<div class="recall">
+    <span class="eyebrow">◆ End state reached — recall beat</span>
+    <p>Before anything is shown: say this system's decision rule out loud, in your own words. Then compare.</p>
+    <button class="actbtn" data-act="reveal-rule">Compare with the rule</button>
+  </div>`;
+}
+function revealHtml(c, quiet){
+  return `<div class="reveal">
+    <div class="rulecard" ${quiet?'style="animation:none"':""}><span class="eyebrow">◆ Decision rule</span><p>${esc(c.rule)}</p></div>
+    <div class="trapcard" ${quiet?'style="animation:none"':""}><span class="eyebrow">⚠ The trap</span><p>${esc(c.trap)}</p></div>
+  </div>`;
+}
+
+function vSheet(){
+  const groups = THEMES.map((t,ti)=>`
+    <div class="sheet-theme" style="--ac:${t.color}">
+      <h3><span class="tno">THEME ${String(ti+1).padStart(2,"0")}</span> ${esc(t.title)}</h3>
+      <ul>${t.concepts.map(c=>`<li><span><b>${esc(c.title)}.</b> ${esc(c.rule)}</span></li>`).join("")}</ul>
+    </div>`).join("");
+  return `${topbar(`<b>Cheat sheet</b> — ${TOTAL} rules`, "#35e0ff", totalDone()/TOTAL)}
+  <section class="sheet">
+    <span class="eyebrow rise">Exam day · Business Environment</span>
+    <h2 class="rise" style="animation-delay:.06s">Every decision rule, one page</h2>
+    <p class="sub rise" style="animation-delay:.12s">The rule each system taught, grouped by theme. Print it, or skim it one last time before you walk in.</p>
+    <div class="sheet-actions rise" style="animation-delay:.18s">
+      <button class="navbtn primary" style="--ac:#35e0ff" onclick="window.print()">Print / save as PDF</button>
+      <button class="navbtn" data-go="hub">← Back to hub</button>
+    </div>
+    ${groups}
+  </section>`;
+}
+
+/* =============== RENDER =============== */
+function render(){
+  const r = route();
+  document.documentElement.scrollTop = 0;
+  if(r.v==="cover") app.innerHTML = vCover();
+  else if(r.v==="hub") app.innerHTML = vHub();
+  else if(r.v==="sheet") app.innerHTML = vSheet();
+  else if(r.v==="tintro"){
+    app.innerHTML = vTintro(r.ti);
+    const t = THEMES[r.ti];
+    const api = mkApi(document.getElementById("primer-scene"), document.getElementById("primer-cap"), document.getElementById("primer-ctrl"), ()=>{});
+    t.primer.wire(api);
+  }
+  else if(r.v==="concept"){
+    app.innerHTML = vConcept(r.ti, r.ci);
+    const t = THEMES[r.ti], c = t.concepts[r.ci];
+    const api = mkApi(
+      document.getElementById("cscene"),
+      document.getElementById("ccap"),
+      document.getElementById("cctrl"),
+      ()=>onConceptEnd(r.ti, r.ci, c)
+    );
+    c.wire(api);
+  }
+}
+function mkApi(scene, capEl, ctrl, onComplete){
+  let completed = false;
+  return {
+    scene, ctrl,
+    caption(html){ capEl.innerHTML = html; capEl.classList.remove("flash"); void capEl.offsetWidth; capEl.classList.add("flash"); },
+    complete(){ if(completed) return; completed = true; onComplete(); }
+  };
+}
+function onConceptEnd(ti, ci, c){
+  const slot = document.getElementById("recall-slot");
+  if(!slot || isDone(ti,ci)) { markDone(ti,ci); return; }
+  slot.innerHTML = recallHtml();
+  slot.querySelector("[data-act=reveal-rule]").addEventListener("click", ()=>{
+    slot.innerHTML = revealHtml(c, false);
+    markDone(ti,ci);
+    const nextBtn = document.querySelector(".cnav .navbtn:last-child");
+    if(nextBtn) nextBtn.classList.add("primary","pulse");
+    setTimeout(()=>slot.scrollIntoView({behavior:"smooth", block:"nearest"}), 100);
+  });
+  setTimeout(()=>slot.scrollIntoView({behavior:"smooth", block:"nearest"}), 150);
+}
+function markDone(ti,ci){
+  if(isDone(ti,ci)) return;
+  state.done[cid(ti,ci)] = true; save();
+  const rail = document.querySelector(".progress-rail i");
+  if(rail) rail.style.width = (totalDone()/TOTAL*100)+"%";
+}
+
+/* =============== GLOBAL EVENTS =============== */
+app.addEventListener("click", e=>{
+  const goBtn = e.target.closest("[data-go]");
+  if(goBtn){ go(goBtn.dataset.go); return; }
+  const chip = e.target.closest("[data-found]");
+  if(chip){
+    const [title, body] = FOUNDATIONS[chip.dataset.found];
+    const pop = document.getElementById("found-pop");
+    if(pop.dataset.cur === chip.dataset.found){ pop.innerHTML=""; pop.dataset.cur=""; return; }
+    pop.dataset.cur = chip.dataset.found;
+    pop.innerHTML = `<div class="found-pop"><span class="eyebrow">Foundation — ${esc(title)}</span><p>${esc(body)}</p></div>`;
+  }
+});
+document.addEventListener("keydown", e=>{
+  if(e.metaKey||e.ctrlKey||e.altKey) return;
+  const tag = (document.activeElement?.tagName||"").toLowerCase();
+  if(tag==="input"||tag==="textarea"){ if(e.key!=="Escape") return; }
+  const r = route();
+  if(e.key==="Enter" && r.v==="cover"){ go("hub"); return; }
+  if(e.key==="Escape"){ go(r.v==="concept"?`t/${r.ti}`:"hub"); return; }
+  if(r.v==="concept"){
+    if(e.key==="ArrowRight"){
+      const t=THEMES[r.ti];
+      go(r.ci<t.concepts.length-1?`c/${r.ti}/${r.ci+1}`:(r.ti<THEMES.length-1?`t/${r.ti+1}`:"sheet"));
+    }
+    if(e.key==="ArrowLeft"){ go(r.ci>0?`c/${r.ti}/${r.ci-1}`:`t/${r.ti}`); }
+  }
+});
+
+render();
+</script>
+</body>
+</html>
