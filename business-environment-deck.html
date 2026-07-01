@@ -1,0 +1,1038 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Business Environment — 26 Misses, 7 Decision Patterns</title>
+<style>
+:root{
+  --bg:#060913; --panel:#0c1322; --panel2:#101a30; --line:#1b2740;
+  --ink:#e9effb; --muted:#93a1c0; --dim:#5b6a8c;
+  --danger:#ff5c5c;
+  --mono:ui-monospace,"Cascadia Code","JetBrains Mono","SF Mono",Menlo,Consolas,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg); color:var(--ink); font-family:var(--sans);
+  font-size:17px; line-height:1.6; min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+body::before{
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background:
+    radial-gradient(1200px 600px at 80% -10%, rgba(53,224,255,.06), transparent 60%),
+    radial-gradient(900px 500px at 10% 110%, rgba(255,77,157,.05), transparent 60%);
+}
+#app{position:relative; z-index:1; max-width:1060px; margin:0 auto; padding:0 24px 96px}
+button{font:inherit; color:inherit; background:none; border:none; cursor:pointer}
+a{color:inherit}
+.mono{font-family:var(--mono)}
+.eyebrow{
+  font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+  text-transform:uppercase; color:var(--dim);
+}
+
+/* ---------- motion ---------- */
+@keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@keyframes riseSoft{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes glowPulse{
+  0%,100%{box-shadow:0 0 0 1px var(--ac), 0 0 18px 0 color-mix(in srgb, var(--ac) 45%, transparent)}
+  50%{box-shadow:0 0 0 1px var(--ac), 0 0 34px 2px color-mix(in srgb, var(--ac) 65%, transparent)}
+}
+@keyframes shake{
+  10%,90%{transform:translateX(-2px)} 20%,80%{transform:translateX(3px)}
+  30%,50%,70%{transform:translateX(-5px)} 40%,60%{transform:translateX(5px)}
+}
+@keyframes sweep{from{transform:translateX(-100%)}to{transform:translateX(200%)}}
+@keyframes ringPop{0%{transform:scale(.94)}60%{transform:scale(1.03)}100%{transform:scale(1)}}
+@keyframes scan{from{background-position:0 0}to{background-position:0 48px}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.rise{animation:rise .55s cubic-bezier(.2,.8,.2,1) both}
+.rise-soft{animation:riseSoft .45s cubic-bezier(.2,.8,.2,1) both}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+
+/* ---------- cover ---------- */
+.cover{min-height:92vh; display:flex; flex-direction:column; justify-content:center; gap:28px; position:relative}
+.cover-grid{
+  position:absolute; inset:-24px; z-index:-1; opacity:.5;
+  background:
+    linear-gradient(transparent 47px, rgba(53,224,255,.05) 48px),
+    linear-gradient(90deg, transparent 47px, rgba(53,224,255,.04) 48px);
+  background-size:48px 48px;
+  mask-image:radial-gradient(70% 70% at 50% 45%, #000 30%, transparent 100%);
+  -webkit-mask-image:radial-gradient(70% 70% at 50% 45%, #000 30%, transparent 100%);
+  animation:scan 6s linear infinite;
+}
+.cover .kicker{color:#35e0ff; font-family:var(--mono); font-size:.8rem; letter-spacing:.22em; text-transform:uppercase}
+.cover h1{
+  font-size:clamp(2.4rem,6vw,4.6rem); font-weight:800; line-height:1.04;
+  letter-spacing:-.02em; text-wrap:balance; max-width:16ch;
+}
+.cover h1 .neon{
+  color:#35e0ff;
+  text-shadow:0 0 24px rgba(53,224,255,.55), 0 0 60px rgba(53,224,255,.25);
+}
+.cover p.lede{max-width:52ch; color:var(--muted); font-size:1.06rem}
+.cover-stats{display:flex; gap:28px; flex-wrap:wrap; font-family:var(--mono); font-size:.85rem}
+.cover-stats b{display:block; font-size:1.7rem; color:var(--ink); font-weight:700}
+.cover-stats span{color:var(--dim); letter-spacing:.12em; text-transform:uppercase; font-size:.68rem}
+.cta{
+  align-self:flex-start; display:inline-flex; align-items:center; gap:12px;
+  font-family:var(--mono); font-size:.9rem; letter-spacing:.14em; text-transform:uppercase;
+  color:#06131a; background:#35e0ff; padding:15px 26px; border-radius:8px; font-weight:700;
+  box-shadow:0 0 26px rgba(53,224,255,.4);
+  transition:transform .18s, box-shadow .18s;
+}
+.cta:hover{transform:translateY(-2px); box-shadow:0 0 40px rgba(53,224,255,.6)}
+.cta .key{border:1px solid rgba(6,19,26,.4); border-radius:4px; padding:1px 7px; font-size:.72rem}
+.cover .resume{color:var(--muted); font-family:var(--mono); font-size:.8rem}
+.cover .resume b{color:#35e0ff}
+
+/* ---------- top bar ---------- */
+.topbar{
+  position:sticky; top:0; z-index:10; display:flex; align-items:center; gap:16px;
+  padding:14px 4px; margin:0 -4px 8px;
+  background:color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+}
+.topbar .crumb{font-family:var(--mono); font-size:.74rem; letter-spacing:.12em; text-transform:uppercase; color:var(--dim); flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.topbar .crumb b{color:var(--ac,#35e0ff)}
+.iconbtn{
+  font-family:var(--mono); font-size:.72rem; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--muted); border:1px solid var(--line); border-radius:6px; padding:7px 12px;
+  transition:border-color .15s,color .15s; white-space:nowrap;
+}
+.iconbtn:hover{border-color:var(--ac,#35e0ff); color:var(--ink)}
+.progress-rail{height:3px; background:var(--line); border-radius:2px; overflow:hidden; flex:0 0 120px}
+.progress-rail i{display:block; height:100%; background:var(--ac,#35e0ff); border-radius:2px; transition:width .5s cubic-bezier(.2,.8,.2,1)}
+
+/* ---------- hub ---------- */
+.hub-head{padding:56px 0 16px; display:flex; flex-wrap:wrap; align-items:flex-end; gap:24px}
+.hub-head h2{font-size:clamp(1.7rem,3.4vw,2.5rem); font-weight:800; letter-spacing:-.01em; text-wrap:balance}
+.hub-head .overall{margin-left:auto; text-align:right}
+.hub-head .overall .num{font-family:var(--mono); font-size:1.5rem; font-weight:700; color:#35e0ff}
+.hub-head .overall .lbl{font-family:var(--mono); font-size:.66rem; letter-spacing:.16em; text-transform:uppercase; color:var(--dim)}
+.hub-sub{color:var(--muted); max-width:62ch; margin-bottom:34px}
+.hub-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px}
+.tcard{
+  --ac:#35e0ff;
+  position:relative; text-align:left; border:1px solid var(--line); border-radius:14px;
+  background:linear-gradient(180deg, var(--panel2), var(--panel));
+  padding:22px 20px 20px; display:flex; flex-direction:column; gap:12px; overflow:hidden;
+  transition:transform .2s, border-color .2s, box-shadow .2s;
+}
+.tcard:hover{transform:translateY(-3px); border-color:color-mix(in srgb, var(--ac) 55%, var(--line)); box-shadow:0 12px 34px -14px color-mix(in srgb, var(--ac) 40%, transparent)}
+.tcard .tno{font-family:var(--mono); font-size:.7rem; letter-spacing:.2em; color:var(--ac)}
+.tcard h3{font-size:1.22rem; font-weight:750; letter-spacing:-.01em; line-height:1.25; text-wrap:balance}
+.tcard p{font-size:.88rem; color:var(--muted); flex:1}
+.tcard .tfoot{display:flex; align-items:center; gap:10px; font-family:var(--mono); font-size:.72rem; color:var(--dim)}
+.tcard .ring{margin-left:auto}
+.tcard.done{border-color:color-mix(in srgb, var(--ac) 45%, var(--line))}
+.tcard .chip{
+  font-family:var(--mono); font-size:.62rem; letter-spacing:.16em; text-transform:uppercase;
+  color:#06131a; background:var(--ac); border-radius:4px; padding:2px 8px; font-weight:700;
+}
+.ring{width:44px; height:44px; flex:none}
+.ring svg{width:100%; height:100%; transform:rotate(-90deg)}
+.ring .bgc{stroke:var(--line); fill:none; stroke-width:4}
+.ring .fgc{stroke:var(--ac); fill:none; stroke-width:4; stroke-linecap:round; transition:stroke-dashoffset .6s cubic-bezier(.2,.8,.2,1)}
+.ring.pop{animation:ringPop .5s cubic-bezier(.2,.8,.2,1)}
+.sheet-link{
+  margin-top:22px; display:flex; align-items:center; justify-content:space-between; gap:16px;
+  border:1px dashed var(--line); border-radius:14px; padding:18px 20px; width:100%;
+  font-family:var(--mono); font-size:.82rem; letter-spacing:.1em; color:var(--muted);
+  transition:border-color .2s,color .2s;
+}
+.sheet-link:hover{border-color:#35e0ff; color:var(--ink)}
+.sheet-link .arr{color:#35e0ff}
+
+/* ---------- theme intro ---------- */
+.tintro{padding:48px 0 0}
+.tintro .tno{font-family:var(--mono); letter-spacing:.22em; font-size:.78rem; color:var(--ac)}
+.tintro h2{font-size:clamp(1.9rem,4.5vw,3.1rem); font-weight:800; letter-spacing:-.015em; margin:10px 0 12px; text-wrap:balance}
+.tintro .tag{color:var(--muted); max-width:58ch; font-size:1.04rem}
+.tintro ol{list-style:none; margin:30px 0; display:flex; flex-direction:column; gap:8px}
+.tintro li button{
+  width:100%; text-align:left; display:flex; align-items:center; gap:14px;
+  border:1px solid var(--line); border-radius:10px; padding:13px 16px;
+  background:var(--panel); transition:border-color .15s, transform .15s;
+}
+.tintro li button:hover{border-color:var(--ac); transform:translateX(4px)}
+.tintro .cno{font-family:var(--mono); font-size:.72rem; color:var(--dim); flex:none}
+.tintro .cname{font-weight:600; flex:1}
+.tintro .cstate{font-family:var(--mono); font-size:.68rem; letter-spacing:.14em; text-transform:uppercase; color:var(--dim)}
+.tintro .cstate.ok{color:var(--ac)}
+
+/* ---------- concept ---------- */
+.concept{padding-top:36px}
+.concept .chead{margin-bottom:22px}
+.concept .chead h2{font-size:clamp(1.5rem,3.4vw,2.2rem); font-weight:800; letter-spacing:-.01em; margin-top:6px; text-wrap:balance}
+.scenario{
+  border:1px solid var(--line); border-left:3px solid var(--ac); border-radius:0 12px 12px 0;
+  background:var(--panel); padding:20px 22px; margin:16px 0 26px; max-width:72ch;
+}
+.scenario .eyebrow{color:var(--ac); margin-bottom:8px; display:block}
+.scenario p{color:var(--ink)}
+.prompt{font-family:var(--mono); font-size:.8rem; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); margin-bottom:14px}
+.prompt b{color:var(--ac)}
+.branches{display:flex; flex-direction:column; gap:10px}
+.branch{border:1px solid var(--line); border-radius:12px; background:var(--panel); overflow:hidden; transition:border-color .2s}
+.branch>button{
+  width:100%; text-align:left; padding:15px 18px; display:flex; gap:14px; align-items:flex-start;
+  transition:background .15s;
+}
+.branch>button:hover{background:var(--panel2)}
+.branch .bkey{
+  font-family:var(--mono); font-size:.72rem; color:var(--dim); border:1px solid var(--line);
+  border-radius:6px; padding:2px 8px; flex:none; margin-top:3px; transition:all .2s;
+}
+.branch .btext{font-size:.98rem}
+.branch .verdict{display:none; padding:0 18px 16px 18px}
+.branch .verdict .vtag{
+  font-family:var(--mono); font-size:.66rem; letter-spacing:.18em; text-transform:uppercase;
+  display:inline-block; margin-bottom:8px; padding:3px 9px; border-radius:4px;
+}
+.branch .verdict p{font-size:.92rem; color:var(--muted); max-width:68ch}
+.branch.open .verdict{display:block; animation:riseSoft .4s cubic-bezier(.2,.8,.2,1) both}
+.branch.wrong{border-color:color-mix(in srgb, var(--danger) 45%, var(--line))}
+.branch.wrong.just{animation:shake .45s}
+.branch.wrong .bkey{color:var(--danger); border-color:color-mix(in srgb, var(--danger) 50%, var(--line))}
+.branch.wrong .vtag{color:var(--danger); border:1px solid color-mix(in srgb, var(--danger) 50%, transparent)}
+.branch.right{border-color:var(--ac); animation:glowPulse 2.4s ease-in-out 2; position:relative}
+.branch.right::after{
+  content:""; position:absolute; top:0; bottom:0; width:40%; pointer-events:none;
+  background:linear-gradient(100deg, transparent, color-mix(in srgb, var(--ac) 14%, transparent), transparent);
+  animation:sweep 1.1s ease-out 1;
+}
+.branch.right .bkey{color:#06131a; background:var(--ac); border-color:var(--ac); font-weight:700}
+.branch.right .vtag{color:#06131a; background:var(--ac); font-weight:700}
+.branch.right .verdict p{color:var(--ink)}
+.reveal{margin-top:26px; display:grid; gap:14px}
+@media(min-width:760px){.reveal{grid-template-columns:1fr 1fr}}
+.rulecard,.trapcard{border-radius:14px; padding:20px 22px}
+.rulecard{
+  border:1px solid var(--ac);
+  background:linear-gradient(180deg, color-mix(in srgb, var(--ac) 10%, var(--panel)), var(--panel));
+  box-shadow:0 0 30px -8px color-mix(in srgb, var(--ac) 35%, transparent);
+}
+.rulecard .eyebrow{color:var(--ac); margin-bottom:8px; display:block}
+.rulecard p{font-size:1.04rem; font-weight:600; line-height:1.5}
+.trapcard{border:1px solid color-mix(in srgb, var(--danger) 40%, var(--line)); background:var(--panel)}
+.trapcard .eyebrow{color:var(--danger); margin-bottom:8px; display:block}
+.trapcard p{font-size:.94rem; color:var(--muted)}
+.explore-hint{margin-top:14px; font-family:var(--mono); font-size:.72rem; letter-spacing:.1em; color:var(--dim)}
+.cnav{display:flex; align-items:center; gap:12px; margin-top:34px; border-top:1px solid var(--line); padding-top:20px}
+.cnav .spacer{flex:1}
+.navbtn{
+  font-family:var(--mono); font-size:.78rem; letter-spacing:.12em; text-transform:uppercase;
+  border:1px solid var(--line); border-radius:8px; padding:11px 18px; color:var(--muted);
+  transition:all .18s;
+}
+.navbtn:hover{border-color:var(--ac); color:var(--ink)}
+.navbtn.primary{color:#06131a; background:var(--ac); border-color:var(--ac); font-weight:700}
+.navbtn.primary:hover{box-shadow:0 0 22px color-mix(in srgb, var(--ac) 50%, transparent)}
+.navbtn.pulse{animation:glowPulse 2s ease-in-out infinite}
+.navbtn:disabled{opacity:.35; cursor:default}
+.navbtn:disabled:hover{border-color:var(--line); color:var(--muted); box-shadow:none}
+.dots{display:flex; gap:6px; align-items:center}
+.dots i{width:7px; height:7px; border-radius:50%; background:var(--line); transition:background .2s}
+.dots i.on{background:var(--ac)}
+.dots i.cur{outline:2px solid var(--ac); outline-offset:2px}
+.exam-meta{font-family:var(--mono); font-size:.68rem; color:var(--dim); letter-spacing:.08em; margin-top:10px}
+
+/* theme complete banner */
+.tdone{
+  margin-top:20px; border:1px solid var(--ac); border-radius:12px; padding:16px 20px;
+  display:flex; align-items:center; gap:14px;
+  background:color-mix(in srgb, var(--ac) 8%, var(--panel));
+  animation:rise .5s cubic-bezier(.2,.8,.2,1) both, glowPulse 2.2s ease-in-out 2;
+}
+.tdone .mark{font-family:var(--mono); color:var(--ac); font-size:1.2rem}
+.tdone p{font-size:.9rem}
+.tdone b{color:var(--ac)}
+
+/* ---------- cheat sheet ---------- */
+.sheet{padding-top:48px}
+.sheet h2{font-size:clamp(1.8rem,4vw,2.7rem); font-weight:800; letter-spacing:-.015em; margin:8px 0 6px}
+.sheet .sub{color:var(--muted); max-width:60ch; margin-bottom:8px}
+.sheet-actions{display:flex; gap:10px; margin:20px 0 34px}
+.sheet-theme{margin-bottom:30px; break-inside:avoid}
+.sheet-theme h3{
+  font-size:1.05rem; font-weight:750; display:flex; gap:12px; align-items:baseline;
+  border-bottom:1px solid var(--line); padding-bottom:8px; margin-bottom:14px;
+}
+.sheet-theme h3 .tno{font-family:var(--mono); font-size:.7rem; letter-spacing:.18em; color:var(--ac)}
+.sheet-theme ul{list-style:none; display:flex; flex-direction:column; gap:10px}
+.sheet-theme li{display:flex; gap:12px; align-items:flex-start; max-width:80ch}
+.sheet-theme li::before{content:"▸"; color:var(--ac); flex:none; font-size:.8rem; margin-top:3px}
+.sheet-theme li b{font-weight:650}
+.sheet-theme li span{color:var(--muted)}
+@media print{
+  body{background:#fff; color:#111; font-size:11.5px}
+  body::before,.topbar,.sheet-actions,.no-print{display:none!important}
+  #app{max-width:none; padding:0}
+  .sheet-theme li span{color:#444}
+  .sheet-theme h3{border-color:#ccc}
+  .sheet-theme h3 .tno,.sheet-theme li::before{color:#111}
+  .sheet h2{font-size:20px} .sheet .sub{color:#444}
+}
+@media(max-width:640px){
+  body{font-size:16px}
+  .progress-rail{flex-basis:64px}
+  .cover-stats{gap:18px}
+  .cnav{flex-wrap:wrap}
+  .dots{display:none}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+/* ================= DATA ================= */
+const THEMES = [
+{
+  id:"loop", color:"#35e0ff", title:"The Knowledge Loop",
+  tag:"Where organizational knowledge lives, and how insight gets fed back into the system. The exam's favorite decoy lives here: the lessons learned register.",
+  concepts:[
+  {
+    q:1, title:"The Authoritative Source",
+    scenario:"You are drafting the project management plan for a housing project. The sponsor wants stronger safety practices than the last project had, and you want the plan to reflect the organization's most current standards. Where do you look?",
+    prompt:"What should the project manager do?",
+    branches:[
+      {t:"Check the lessons learned register for validated safety recommendations.", ok:false,
+       w:"You would be reading raw, project-level lessons — not validated standards. The PMO distills registers into the knowledge base; the register itself is the input, never the authority. This is the classic decoy answer."},
+      {t:"Review the previous housing project's archive for safety notes.", ok:false,
+       w:"Archives hold raw data from one project. Nothing in them has been validated or institutionalized, so you would be importing unvetted practice into a formal plan."},
+      {t:"Consult the safety officer and add departmental procedures to the plan.", ok:false,
+       w:"That is a single function's view. Organizational standards must come from organizational process assets, not from one department's procedures."},
+      {t:"Search the knowledge repositories for updated safety process improvements.", ok:true,
+       w:"The organization's knowledge repository is the authoritative source. It holds the validated, institutionalized continuous-improvement processes drawn from across the organization — exactly what \"most current organizational standards\" means."}
+    ],
+    rule:"Current organizational standards live in the knowledge repository — an OPA. Registers hold raw lessons, archives hold raw data, departments hold local views.",
+    trap:"\"Lessons learned register\" sounds like the home of improvements. It is not — it stores unvalidated, current-project lessons. Only after the PMO formalizes them do they become organizational standards."
+  },
+  {
+    q:2, title:"Close the Loop",
+    scenario:"A mid-project audit reveals that recurring vendor delays were already documented in lessons learned from earlier projects — and the very same vendor practices are now causing repeated schedule slippage on your project.",
+    prompt:"What should the project manager do about this pattern?",
+    branches:[
+      {t:"Document the vendor delays in the final project report for organizational awareness.", ok:false,
+       w:"A final report informs future readers — later. It does nothing to stop the delays happening right now, and the pattern repeats for a third time."},
+      {t:"Escalate the vendor performance issue to the sponsor for intervention and oversight.", ok:false,
+       w:"Escalation hands your job to the sponsor. Applying lessons learned to the project's own artifacts is squarely the project manager's responsibility."},
+      {t:"Request a change to the procurement management plan's vendor management practices using repository insights.", ok:true,
+       w:"This turns organizational knowledge into a formal, systemic fix: the insight lands in the artifact that actually governs vendor behavior, through change control. The loop closes."},
+      {t:"Increase the frequency of vendor status meetings for the rest of the project.", ok:false,
+       w:"More meetings means more watching. Oversight intensity does not change the vendor practices that cause the delays."}
+    ],
+    rule:"Apply repository insight by formally changing the plan that governs the problem. Watching harder or reporting later never fixes practices.",
+    trap:"Escalating and adding meetings both feel proactive. Neither one changes the controlling artifact — and the exam reads both as avoidance."
+  },
+  {
+    q:6, title:"Institutionalize It",
+    scenario:"At the close of a compliance project, your team's new regulatory-documentation checklists have dramatically reduced errors. They are not yet part of the organization's standard resources, and you want future projects to benefit.",
+    prompt:"What should the project manager do?",
+    branches:[
+      {t:"Retain the checklists in the project's own repository for easy team reference.", ok:false,
+       w:"Locked inside the project, the checklists help exactly one team. Access is limited and organizational learning never happens."},
+      {t:"Share the checklists informally with peers starting similar projects.", ok:false,
+       w:"Informal sharing spreads knowledge to whoever happens to hear about it — but nothing is institutionalized, and the practice dies with staff turnover."},
+      {t:"Ask the sponsor to approve the checklists for organizational use.", ok:false,
+       w:"Sponsor approval is authority, not implementation. A blessing does not update the organization's process assets — someone still has to put the checklists where projects will find them."},
+      {t:"Update the checklists and place them into the organization's quality repository.", ok:true,
+       w:"Placing them in the quality repository standardizes the practice, improves audit readiness, and makes the improvement available to every future project. This is how an improvement becomes organizational."}
+    ],
+    rule:"An improvement becomes organizational only when it enters the organizational repository. Retention, informal sharing, and sponsor blessing do not institutionalize anything.",
+    trap:"Sponsor approval feels official — but authority is not the same as updating OPAs. The mechanical act of placing the asset in the repository is the answer."
+  },
+  {
+    q:12, title:"From Retro to System",
+    scenario:"Your agile team's sprint retrospectives keep identifying the same impediments. They are dutifully logged in the retro notes, but they never enter the organization's improvement framework — and nothing changes.",
+    prompt:"How do you make these insights drive systemic change?",
+    branches:[
+      {t:"Continue logging impediments in retrospective notes for review next iteration.", ok:false,
+       w:"That is exactly what has been happening. Retro notes are visible to the team and invisible to the organization — recurring issues stay recurring."},
+      {t:"Record recurring impediments in the lessons learned repository and address the improvement backlog.", ok:true,
+       w:"The repository makes the pattern visible to the organization; the improvement backlog makes it actionable. Together they convert retro chatter into systemic change."},
+      {t:"Escalate the impediments to the sponsor for resolution and oversight.", ok:false,
+       w:"Escalation bypasses the real mechanism: embedding improvements into the organization's processes. The sponsor is not the improvement framework."},
+      {t:"Schedule more retrospectives to capture more impediment data.", ok:false,
+       w:"More retrospectives produce more data about the same unresolved issues. Volume of capture was never the problem — systemic follow-through was."}
+    ],
+    rule:"Recurring impediments graduate from retro notes to the lessons learned repository plus an improvement backlog. Repository = visible; backlog = actionable.",
+    trap:"Notice the rhyme with the vendor-delay pattern: sponsor escalation and more meetings/retros are recurring decoys whenever the real answer is \"feed the system.\""
+  }
+]},
+{
+  id:"cct", color:"#ff4d9d", title:"Change Control Triggers",
+  tag:"Know the exact moment the formal machinery must engage — and what has to happen before you touch a baseline.",
+  concepts:[
+  {
+    q:3, title:"Threshold Crossed",
+    scenario:"Midway through a publicly funded infrastructure project, cost and schedule variances exceed the escalation thresholds defined in the governance plan — driven by material price spikes and permit delays. The sponsor fears reputational damage without fast corrective action.",
+    prompt:"What should the project manager do?",
+    branches:[
+      {t:"Negotiate material prices, expedite permits, then update cost and schedule baselines.", ok:false,
+       w:"The corrective actions are fine — but once variances exceed governance thresholds, you never update baselines directly. Baselines move only through approved change control."},
+      {t:"Revise the implementation plan, monitor closely, and send frequent variance reports.", ok:false,
+       w:"Monitoring and reporting ignore the trigger that already fired. Thresholds exceeded means monitoring alone is over; the issue must move through formal governance."},
+      {t:"Apply tighter procurement oversight and more efficient resource allocation.", ok:false,
+       w:"This treats a governance breach as an operational tuning problem. It may reduce future variance, but the current variances have already crossed escalation limits and require formal review."},
+      {t:"Submit a formal change request to adjust the baseline budget and timeline using updated estimates.", ok:true,
+       w:"Analyze causes, re-forecast with current information, and submit a change request. This preserves governance integrity, gives the sponsor visibility, and creates a documented path to an approved rebaseline."}
+    ],
+    rule:"Variance beyond governance thresholds is a governance trigger: analyze, re-forecast, submit a formal change request. Baselines change only through change control.",
+    trap:"Hands-on fixes (negotiate! expedite! optimize!) feel like leadership. The moment thresholds fire, the exam wants process integrity, not heroics."
+  },
+  {
+    q:18, title:"Assess Before Anything",
+    scenario:"Your new product is ready to ship. At that moment, new components become available that would improve its quality.",
+    prompt:"What should the project manager do?",
+    branches:[
+      {t:"Evaluate the risks and benefits of deploying the components in the next product release.", ok:false,
+       w:"Deferring to the next release before any assessment gives away a first-to-market opportunity that might have been easy to seize."},
+      {t:"Integrate the components and launch a marketing campaign about the improved quality.", ok:false,
+       w:"Adopting unevaluated components at the point of shipping is a gamble, not a business decision. No impact analysis, no adoption."},
+      {t:"Submit a formal change request for additional budget to cover the components.", ok:false,
+       w:"A change request is premature — nobody has established that the components add value yet. Change control consumes an impact assessment; it does not replace one."},
+      {t:"Assess the components to determine their potential impact and benefits to the product.", ok:true,
+       w:"Assessment comes first, always. Once impact and benefits are understood, the right path — adopt now via change control, defer, or skip — becomes an informed choice."}
+    ],
+    rule:"Impact assessment precedes everything: change requests, adoption, and deferral are all downstream of knowing what the change is worth.",
+    trap:"Jumping straight to a change request feels disciplined. A CR without an assessed impact is just paperwork — the exam wants the analysis first."
+  },
+  {
+    q:22, title:"Late-Breaking Law",
+    scenario:"You are finalizing exit criteria on a predictive, large-scale system project. The risk-and-compliance stakeholder informs you that newly passed legislation requires an additional deliverable — and it could delay go-live.",
+    prompt:"What should the project manager do?",
+    branches:[
+      {t:"Hold a meeting to clarify that the request is not part of the defined exit criteria.", ok:false,
+       w:"Rejecting a legal requirement because it arrived late does not make it optional. Ignoring new legislation exposes the project to compliance risk."},
+      {t:"Work with the stakeholder to document the request and initiate a formal change request.", ok:true,
+       w:"In predictive environments, anything touching scope, cost, or schedule goes through formal change control. Document it, log it, and let the CCB decide on compliance, alignment, and risk."},
+      {t:"Escalate to the sponsor to avoid delays to the delivery timeline.", ok:false,
+       w:"Escalating sidesteps the standard change process and shifts accountability upward — and it does not actually prevent any delay."},
+      {t:"Record the legal requirement as a risk and monitor it, since it is outside original scope.", ok:false,
+       w:"Passed legislation is not a potential future event — it is a realized change. Risks are monitored; changes are processed."}
+    ],
+    rule:"A realized regulatory change goes through formal change control, no matter how late it arrives. Never reject it, park it as a risk, or route around the process via the sponsor.",
+    trap:"\"Record it as a risk\" tempts because the word compliance smells like the risk register. Test: has it already happened? Then it is a change, not a risk."
+  },
+  {
+    q:23, title:"The Plan Must Follow Reality",
+    scenario:"On an agile project, a risk identified early now occurs — with far higher impact than anticipated. The planned response would be ineffective. The team has designed a drastically different, better response that must be implemented as soon as possible.",
+    prompt:"What should the project manager do?",
+    branches:[
+      {t:"Implement only the initial response as outlined in the risk management plan.", ok:false,
+       w:"You would be executing a response everyone already knows will fail, out of loyalty to a document. Plans serve the project, not the reverse."},
+      {t:"Update the risk management plan and implement the newly created response.", ok:true,
+       w:"Act fast and keep the record truthful. Updating the plan as you implement makes stakeholders aware of the change and the reasoning — adaptation with transparency is the agile answer."},
+      {t:"Defer the response until the next progress meeting to inform stakeholders.", ok:false,
+       w:"Waiting for a ceremony while a high-impact risk event unfolds compounds the damage. Urgency was stated in the scenario for a reason."},
+      {t:"Implement a contingency response now and inform stakeholders afterward.", ok:false,
+       w:"Acting without stakeholder awareness breeds confusion and mistrust. Transparency is not a follow-up task — it travels with the action."}
+    ],
+    rule:"When reality outgrows the plan: implement the better response and update the plan together. Speed and transparency are one move, not two.",
+    trap:"\"Act now, tell later\" exploits the urgency in the scenario. The exam never rewards keeping stakeholders in the dark, however pressing the timeline."
+  }
+]},
+{
+  id:"diag", color:"#a78bfa", title:"Diagnose Before You Intervene",
+  tag:"One story in five acts: get the framework, assess, interpret, act — and be willing to change yourself. The exam tells you which act you're in; read the 'already done' list.",
+  concepts:[
+  {
+    q:11, title:"Act I — Framework First",
+    scenario:"A regional hospital system is preparing to merge with another provider. Management wants a structured approach to understanding staff attitudes and behaviors that could affect integration. You have reviewed the EEFs — org charts, workforce demographics. What next?",
+    prompt:"What should the project manager do next?",
+    branches:[
+      {t:"Distribute a short survey to gather initial feedback on the merger.", ok:false,
+       w:"A survey without a defined framework is a premature step that risks unfocused results. \"Structured approach\" is the scenario's key phrase — structure comes before data."},
+      {t:"Convene focus groups to discuss integration concerns with selected employees.", ok:false,
+       w:"Focus groups need an evaluation framework first to guarantee representative coverage. Otherwise you hear from whoever is loudest."},
+      {t:"Review historical employee engagement data to estimate cultural readiness.", ok:false,
+       w:"Historical engagement is a proxy metric. It will not reveal current, merger-specific attitudes — the thing management actually asked about."},
+      {t:"Review the resource management plan and artifacts on standard operating procedures.", ok:true,
+       w:"The resource management plan defines how cultural assessment, staff attitudes, and behavior are handled; SOPs define accepted team behavior. That is the structured framework everything else hangs on."}
+    ],
+    rule:"When the ask is a \"structured approach,\" get the framework before collecting data — the resource management plan and SOPs tell you how to assess.",
+    trap:"Surveys and focus groups are genuinely right steps — later. The question asks what comes next, and frameworks precede fieldwork."
+  },
+  {
+    q:4, title:"Act II — Assess Before Fixing",
+    scenario:"A technology company is shifting from a hierarchical to an agile culture. You have reviewed the EEFs — org structure, workforce readiness. Leadership is supportive, yet engineers keep raising concerns that slow adoption.",
+    prompt:"What should the project manager do next?",
+    branches:[
+      {t:"Update job descriptions to include agile responsibilities.", ok:false,
+       w:"An HR administrative action, not a cultural diagnostic. Paper changes do not surface why engineers resist."},
+      {t:"Conduct a cultural assessment using surveys and interviews with employees.", ok:true,
+       w:"This is the diagnostic step: identify the actual values and behaviors in play before designing any intervention. You cannot treat what you have not diagnosed."},
+      {t:"Launch training sessions to prepare engineers for agile practices.", ok:false,
+       w:"Training is premature when you do not yet understand the cultural drivers of the resistance. You might train against the wrong problem entirely."},
+      {t:"Draft a cultural change strategy to address the engineers' resistance.", ok:false,
+       w:"Strategy without assessment data is guesswork with a cover page. The assessment feeds the strategy — not the other way around."}
+    ],
+    rule:"Diagnose values and behaviors before any intervention. Assessment precedes training, strategy, and administrative fixes.",
+    trap:"Contrast with Act I: there, assessment tools were premature because no framework existed. Here the EEF review is done and the framework question is settled — so assessment IS the next step. Track what the scenario says is already complete."
+  },
+  {
+    q:15, title:"Act III — Interpret the Data",
+    scenario:"An engineering company is outsourcing building operations. Senior management wants to understand how team dynamics could affect prioritization and governance. You have already collected survey data and conducted stakeholder interviews.",
+    prompt:"What should the project manager do next?",
+    branches:[
+      {t:"Update the stakeholder map to show reporting relationships across departments.", ok:false,
+       w:"Stakeholder maps show relationships. They do not reveal the cultural and political dynamics behind decision-making, which is what management asked about."},
+      {t:"Apply cultural and political awareness tools to evaluate decision-making influences.", ok:true,
+       w:"Data has been collected; the interpretive step comes next. Cultural and political awareness tools turn raw survey and interview input into insight about how decisions actually get made."},
+      {t:"Submit the survey findings to the project management office for review.", ok:false,
+       w:"Passing raw findings to the PMO is passive — it abdicates the analysis that is yours to do."},
+      {t:"Schedule a summary review with the legal and procurement department managers.", ok:false,
+       w:"A summary review with two departments is neither analysis nor the right audience. The data still has not been interpreted."}
+    ],
+    rule:"After collection comes interpretation. Analysis tools sit between raw data and strategy — skipping them hands someone a pile of surveys instead of an answer.",
+    trap:"Handing findings \"up\" to a PMO or a review meeting looks diligent but is an abdication. When the scenario says data is collected, the verb the exam wants is analyze."
+  },
+  {
+    q:8, title:"Act IV — Now Act",
+    scenario:"A telecom company is restructuring after outsourcing facilities management. You have completed stakeholder engagement, addressed resistance, and aligned the change strategy with the company's cultural values. The team must now prepare targeted interventions.",
+    prompt:"What should the project manager do next?",
+    branches:[
+      {t:"Revisit stakeholder interviews to confirm alignment with current priorities.", ok:false,
+       w:"Alignment is already achieved — the scenario says so. Re-interviewing is a redundant loop back into diagnosis."},
+      {t:"Update the competency framework to reflect revised job descriptions.", ok:false,
+       w:"A follow-up activity, not an implementation step. It documents change rather than making it."},
+      {t:"Compile a summary of engagement outcomes and store it in the repository.", ok:false,
+       w:"Administrative filing. Useful eventually, but it moves nothing forward when the team is poised to intervene."},
+      {t:"Initiate targeted change activities such as process redesign and staff training.", ok:true,
+       w:"Diagnosis done, alignment done — the next step is action. Targeted interventions aim the change effort at the specific areas that need it."}
+    ],
+    rule:"When diagnosis and alignment are complete, the answer is action — targeted interventions, not another lap of study or paperwork.",
+    trap:"After three questions rewarding caution, this one punishes it. The cycle has a direction: framework → assess → interpret → act. Find your position before picking the careful-sounding option."
+  },
+  {
+    q:17, title:"Act V — Adapt Yourself Too",
+    scenario:"A startup hires you after years at an established company. Here, uncertainty and change are normal — and your conventional practices are meeting resistance from the team. You are willing to adjust and focused on the project's success.",
+    prompt:"What should the project manager do?",
+    branches:[
+      {t:"Plot a fully detailed schedule with clear milestones to offset the chaotic design process.", ok:false,
+       w:"A rigid schedule cannot force an unpredictable design process to follow it. The culture is partly a rational response to the conditions the startup operates under."},
+      {t:"Re-evaluate expectations about hierarchy and empower the team with decision-making.", ok:true,
+       w:"Culture — including tolerance for uncertainty — is at the root of how an organization operates. Swapping imported hierarchical expectations for the egalitarian style that fits this startup is the adjustment that works."},
+      {t:"Employ a style that tolerates informality but still leans on hierarchy and authority.", ok:false,
+       w:"The resistance already told you the formal style was a mistake. Softening it slightly is still importing it."},
+      {t:"Establish a code of conduct and specify policies to frame the team's informal interactions.", ok:false,
+       w:"A well-functioning team may read an imposed code of conduct as superfluous — even insulting. Documented policies should follow organizational need, not the manager's comfort."}
+    ],
+    rule:"Leadership style bends to the organization's culture, not the reverse. In high-uncertainty cultures, empower rather than impose structure.",
+    trap:"The compromise option — informal but still hierarchical — is bait. When the team has already resisted imported formality, half-importing it is not adaptation."
+  }
+]},
+{
+  id:"esc", color:"#ffc940", title:"Escalate or Own It?",
+  tag:"The exam's sharpest judgment call: what is the project manager's job, and what genuinely belongs above the project. Get the boundary wrong in either direction and you lose the point.",
+  concepts:[
+  {
+    q:21, title:"Own the Room",
+    scenario:"A hydropower plant project has finished its compliance analysis. Meeting all regulatory, safety, and security requirements will be costly and complex — and stakeholders hold conflicting views about whether full compliance is really necessary.",
+    prompt:"What should the project manager do next?",
+    branches:[
+      {t:"Lead a discussion with stakeholders to confirm the need for compliance and highlight the risks of non-compliance.", ok:true,
+       w:"A structured discussion closes the knowledge gap driving the conflict: stakeholders see the obligations and the long-term cost of skipping them. Facilitating that alignment is the project manager's job — before anyone escalates anything."},
+      {t:"Search the stakeholder register for individuals with the authority to resolve the disagreement.", ok:false,
+       w:"Finding influential allies helps a negotiation, but it does not fix the actual problem: stakeholders misunderstand why compliance matters."},
+      {t:"Escalate the compliance concerns and conflicting views to the sponsor.", ok:false,
+       w:"Escalating first bypasses the project manager's responsibility to facilitate resolution at the stakeholder level. The sponsor is the backstop, not the first move."},
+      {t:"Propose removing select compliance elements to balance cost and expectations.", ok:false,
+       w:"Trading away regulatory requirements to please stakeholders invites legal, financial, and reputational damage. Compliance is not a negotiable scope item."}
+    ],
+    rule:"Compliance itself is non-negotiable — and building stakeholder alignment around it is the PM's own job. Escalation before facilitation is abdication.",
+    trap:"\"Conflicting stakeholders + sponsor exists\" pattern-matches to escalation. But conflict about facts is resolved with facilitation and information, not authority."
+  },
+  {
+    q:13, title:"Strategy Belongs Above",
+    scenario:"Your software project launched before a popular new networking technology appeared. The sponsor is pushing to adopt it, citing market share — but the engineers agree that extensive recoding would be needed to retrofit compatibility.",
+    prompt:"What should the project manager do?",
+    branches:[
+      {t:"Work with the sponsor to assess the technology's value and update the project management plan with the revised strategy.", ok:true,
+       w:"Redirecting the product around a new technology is a business-strategy decision, not a project-level one. Align with the sponsor — and the program or portfolio — first; the plan then follows the approved strategy."},
+      {t:"Alert stakeholders to expect scope expansion and timeline delays from the recoding.", ok:false,
+       w:"Premature. If the strategic decision goes the other way, the expansion never materializes — and you have burned credibility broadcasting a change that was never approved."},
+      {t:"Work with the team to determine the maximum scope change they can realistically absorb.", ok:false,
+       w:"A real task — after the new direction is established. Sizing capacity for a strategy nobody has approved puts the cart before the horse."},
+      {t:"Adopt an iterative development approach to continuously absorb networking-related changes.", ok:false,
+       w:"Possibly a fine delivery approach — but you do not rebuild the project management plan around a business strategy that has not been decided."}
+    ],
+    rule:"Technology pivots are business-strategy decisions. Align with the sponsor and portfolio before touching the plan — strategy first, plan second.",
+    trap:"Every wrong option here is a reasonable action done too early. Sequence is the whole question: strategic alignment unlocks the rest."
+  },
+  {
+    q:24, title:"Organizational Shock",
+    scenario:"You are in sprint five of a product development project, releasing next quarter — when your company is unexpectedly acquired by a competitor that already sells a similar product.",
+    prompt:"What should the project manager do first?",
+    branches:[
+      {t:"Perform a comparative product analysis to identify differentiation opportunities.", ok:false,
+       w:"This quietly assumes the project continues. After an acquisition, that assumption is exactly what nobody has confirmed yet."},
+      {t:"Collaborate with the acquiring company's product team on integration possibilities.", ok:false,
+       w:"Necessary eventually — but first you need to understand the acquisition's immediate impact and strategic implications for your project. Reaching across before direction exists is freelancing."},
+      {t:"Seek support from the project sponsor and initiate appropriate change management procedures.", ok:true,
+       w:"An acquisition is a major organizational change — it demands immediate sponsor engagement and formal change management. Executive direction comes before any product decision: continue, modify, or terminate."},
+      {t:"Prepare project termination documentation and capture lessons learned.", ok:false,
+       w:"This assumes cancellation just as confidently as option one assumed continuation. Neither assumption survives without an organizational assessment."}
+    ],
+    rule:"Events above the project — mergers, acquisitions, strategy shifts — require executive direction through formal change management before any project-level move.",
+    trap:"Compare the three questions in this theme: escalate when the decision is organizational or strategic; own it when the work is stakeholder alignment or applying lessons. The boundary is whose decision it is — not how urgent it feels."
+  }
+]},
+{
+  id:"risk", color:"#8af25e", title:"Risk in the Right Order",
+  tag:"Identification and analysis have a sequence the exam enforces ruthlessly: people first, register before plan, qualitative before quantitative, expertise where knowledge is thin.",
+  concepts:[
+  {
+    q:14, title:"People Before Process",
+    scenario:"An NGO is building a water purification system across developing countries: innovative technology needing test-and-adapt cycles, plus shifting local regulations that could alter scope and timeline. Facing deep uncertainty, you must prepare for unknown risks. What comes first?",
+    prompt:"What should the project manager do first?",
+    branches:[
+      {t:"Establish a continuous risk identification process and update the risk register as risks emerge.", ok:false,
+       w:"Important — second. A continuous process works once key stakeholders are engaged and agree on the risk management approach. Process without people identifies risks nobody owns."},
+      {t:"Revise the risk management plan whenever test results or regulatory changes reveal new risks.", ok:false,
+       w:"Category error: the risk management plan describes the approach to risk. New risks go in the risk register — you do not rewrite the methodology every time one appears."},
+      {t:"Engage key stakeholders early to identify potential risks and document them in the risk register.", ok:true,
+       w:"In uncertain, complex projects, stakeholder engagement is the priority in risk identification. It establishes the baseline register that continuous identification will later keep current."},
+      {t:"Request additional reserves to cover cost and schedule impacts of regulatory change.", ok:false,
+       w:"Reserves are sized by quantitative risk analysis. Requesting them before anything is identified or analyzed is asking for a number with no math behind it."}
+    ],
+    rule:"Risk management starts with people: engage stakeholders, baseline the register. Continuous processes, plan revisions, and reserves all come after.",
+    trap:"Plan versus register is a recurring exam trick. The plan is the how — stable. The register is the what — living. New risks touch the register."
+  },
+  {
+    q:5, title:"Keep Finding People",
+    scenario:"In a project's early stages, the team is identifying risks for the project management plan — and discovers that stakeholders hold many concerns that have never been articulated.",
+    prompt:"What approach should the project manager adopt?",
+    branches:[
+      {t:"Identify key environmental and social threats to meet sustainability objectives.", ok:false,
+       w:"That is one category of risk, chosen before anyone has established it matters for this project. The team should weigh a category's relevance before centering on it."},
+      {t:"Follow a continuous stakeholder identification strategy to catch risks as they emerge.", ok:true,
+       w:"Unvoiced concerns mean unheard — possibly unidentified — stakeholders. Continuously identifying stakeholders keeps awareness of emerging risks alive for the whole project: risks surface through people."},
+      {t:"Focus on each risk's value to the project outcome for pragmatic resolution.", ok:false,
+       w:"Value-ranking is prioritization — a later step. The problem in this scenario is identification: concerns have not even been articulated yet."},
+      {t:"Implement a strategic framework, such as PESTLE, to identify sources of overall project risk.", ok:false,
+       w:"PESTLE finds sources of risk systematically — useful, but the stated gap is stakeholder concerns going unheard, and a category framework does not fix that."}
+    ],
+    rule:"Unvoiced stakeholder concerns signal missing stakeholders. Keep identification continuous — risks surface through people, not frameworks.",
+    trap:"PESTLE glitters because it sounds rigorous. Match the tool to the stated gap: the scenario is about people not being heard, not categories not being scanned."
+  },
+  {
+    q:26, title:"Import Expertise",
+    scenario:"A complex integration project spans legacy systems and emerging technologies. The internal team has identified standard technical and schedule risks — but stakeholders worry the team does not fully understand the integration and regulatory-compliance risks. Deadlines are tight; budget is limited.",
+    prompt:"How should the project manager enhance risk identification?",
+    branches:[
+      {t:"Conduct additional brainstorming sessions with the team for more comprehensive scenarios.", ok:false,
+       w:"Brainstorming recombines knowledge the team already has — which is precisely what stakeholders say is insufficient. Unstructured repetition also bloats the register."},
+      {t:"Review historical project data and lessons learned from similar integrations.", ok:false,
+       w:"Useful as part of a broader strategy — but alone, history overlooks what is unique about this integration and can produce an outdated risk profile."},
+      {t:"Engage external subject matter experts to validate identified risks and uncover additional vulnerabilities.", ok:true,
+       w:"When the team's knowledge is the gap, import knowledge. SMEs bring functional expertise that validates the register quickly and surfaces high-risk areas insiders cannot see — a fit for tight deadlines, too."},
+      {t:"Schedule individual interviews with key stakeholders about their specific concerns.", ok:false,
+       w:"One-on-one interviews are slow, and the scenario is explicit about tight deadlines. Worse, stakeholders hold concerns — not the specialized knowledge that is missing."}
+    ],
+    rule:"When the team's own knowledge is the identified gap, bring expertise in. SMEs validate fast and see what insiders can't.",
+    trap:"\"More brainstorming\" flatters the team and \"review history\" sounds cheap — both recycle the same insufficient knowledge base the stakeholders flagged."
+  },
+  {
+    q:25, title:"Qualitative First",
+    scenario:"A team meeting surfaces several potential risks. The sponsor requests a follow-up to understand which ones need the most attention and how they might hit project objectives. You want the risks prioritized before that meeting.",
+    prompt:"What should the project manager do?",
+    branches:[
+      {t:"Conduct a qualitative risk analysis to assess probability and impact.", ok:true,
+       w:"Qualitative analysis is the prioritization step: probability × impact sorts the register so you can tell the sponsor which risks deserve attention and deeper analysis. Fast, and exactly fitted to the ask."},
+      {t:"Perform quantitative analysis to calculate overall risk exposure.", ok:false,
+       w:"Quantitative analysis comes after qualitative filtering, and only for the high-priority survivors. Heavy modeling before triage is effort spent on risks that may not matter."},
+      {t:"Use a Monte Carlo simulation to model schedule sensitivity.", ok:false,
+       w:"Monte Carlo is a specific quantitative tool for modeling uncertainty — not an early-stage, general prioritization method."},
+      {t:"Ask subject matter experts to validate the entries in the risk register.", ok:false,
+       w:"Expert judgment supports risk processes but is not itself a prioritization method. Validation tells you the risks are real, not which ones matter most."}
+    ],
+    rule:"Prioritization means qualitative analysis — probability and impact. Quantitative tools and Monte Carlo enter later, only for what survives the filter.",
+    trap:"Note the flip from the previous concept: there, SMEs were right because knowledge was the gap. Here the gap is ranking, and SMEs are the decoy. The stated need picks the tool."
+  }
+]},
+{
+  id:"value", color:"#ff7847", title:"Value & Leading Indicators",
+  tag:"Measure what predicts, decide by business value, and aim interventions at the diagnosed gap — not at whatever generic virtue is on the menu.",
+  concepts:[
+  {
+    q:10, title:"Leading, Not Lagging",
+    scenario:"You and the product owner are defining governance metrics for an agile initiative. The sponsor wants innovative measures that anticipate delivery risks — before they materialize.",
+    prompt:"Which metric belongs in the governance plan?",
+    branches:[
+      {t:"Customer satisfaction surveys after product release.", ok:false,
+       w:"Reactive by definition — it can only tell you about problems after delivery. The sponsor asked for anticipation."},
+      {t:"Defect density recorded at the end of each iteration.", ok:false,
+       w:"A lagging quality indicator: the defects have already been built. It explains the past; it does not warn about the future."},
+      {t:"Team satisfaction and engagement scores.", ok:true,
+       w:"A leading indicator. Falling engagement signals burnout, unclear goals, resource strain, or conflict — the upstream causes of delivery failure — while there is still time to act. That is what \"anticipate\" means."},
+      {t:"Negative social media reviews after product launch.", ok:false,
+       w:"Doubly lagging: the product has shipped and the damage is public. Reputational monitoring cannot anticipate anything."}
+    ],
+    rule:"To anticipate risk, choose leading indicators. Anything measured after the work ships can only explain — never warn.",
+    trap:"Defect density sounds like serious engineering rigor. Timing is the tell: measured at iteration end, it trails the work. Ask of any metric — does it fire before or after the damage?"
+  },
+  {
+    q:19, title:"Forecast From Facts",
+    scenario:"Unforeseen political risks force an urgent acceleration of a software project. The sponsor demands immediate visibility into anticipated delays and their business impact, to drive go/no-go decisions.",
+    prompt:"What should the project manager do?",
+    branches:[
+      {t:"Conduct a trend analysis using project performance data to forecast timeline impacts.", ok:true,
+       w:"Trend analysis projects forward from actual velocity and performance — objective, data-driven delay forecasts a sponsor can take into a go/no-go decision immediately."},
+      {t:"Run risk assessment workshops with stakeholders to evaluate political risks.", ok:false,
+       w:"Workshops identify and mitigate risks; they do not produce the immediate delay-and-impact visibility the sponsor asked for."},
+      {t:"Execute schedule compression analysis using crashing and fast-tracking.", ok:false,
+       w:"Compression explores recovery options — how to claw time back. The sponsor first needs to know how late the project will be and what it costs the business."},
+      {t:"Develop scenario-planning models based on regulatory possibilities.", ok:false,
+       w:"Scenario models are hypotheses. Without grounding in historical performance data, they cannot deliver accurate delay predictions for a decision this consequential."}
+    ],
+    rule:"\"Immediate visibility on delays\" = forecast from actual performance data. Trend analysis answers the question sponsors are really asking: how late, and what does it cost?",
+    trap:"Fancy techniques (compression, scenario planning) answer questions nobody asked. Match the deliverable to the request: the sponsor wants a forecast, not a workshop."
+  },
+  {
+    q:16, title:"Value Decides",
+    scenario:"A manufacturing project depends on a fluid supply chain — and sudden supply issues have disrupted the schedule. The sponsor warns the critical path is at risk, and missed milestones carry penalties. You need to resolve the delay fast.",
+    prompt:"What should the project manager do?",
+    branches:[
+      {t:"Postpone all tasks affected by the issue until supplies are available again.", ok:false,
+       w:"Blanket postponement is premature — it may not even be possible to resequence production, and it ignores every factor that should inform the decision."},
+      {t:"Notify stakeholders of the delay in anticipation of impacts on dependencies.", ok:false,
+       w:"Stakeholders should absolutely be notified — after the reassessment that tells you what the message actually is. Order of operations loses the point here."},
+      {t:"Reassess the business value of the affected items and reprioritize them accordingly.", ok:true,
+       w:"Value triage first: low-value items might be postponed or cut; high-value items may demand renegotiation. Reassessing value is what turns the next move into an informed decision instead of a reflex."},
+      {t:"Deliver the product in increments as work items are completed to keep workflows moving.", ok:false,
+       w:"Viable only if the delayed components separate cleanly from other deliverables — which nobody has established. A workaround chosen before analysis is a guess."}
+    ],
+    rule:"Disruption response starts by re-ranking the affected work by business value. Every other move — postpone, notify, re-slice — follows from that ranking.",
+    trap:"Under time pressure (\"penalties!\"), doing something visible feels right. The exam consistently rewards the 30-minute value reassessment that makes the action correct."
+  },
+  {
+    q:9, title:"Aim at the Diagnosed Gap",
+    scenario:"KPIs show your project missing milestones, with a higher-than-expected rate of resource allocation issues. The assessment concludes: the resource management process needs refinement to optimize utilization.",
+    prompt:"What should the project manager do?",
+    branches:[
+      {t:"Tailor stakeholder engagement strategies to match their expertise in resource management.", ok:true,
+       w:"The diagnosis names the broken process; the fix pulls in the people whose expertise matches it. Tailored engagement aims directly at refining resource management — the actual finding."},
+      {t:"Update methodologies to improve organizational practices and keep them relevant.", ok:false,
+       w:"Methodology updates are organizational-level work, beyond the project manager's immediate authority. The finding was about this project's process."},
+      {t:"Foster collaboration and trust to strengthen teamwork and accountability.", ok:false,
+       w:"A generic virtue. Better teamwork is always nice and fixes resource utilization approximately never."},
+      {t:"Establish open, transparent communication so the team stays informed on progress.", ok:false,
+       w:"Another generic virtue: awareness of the problem is not a solution to allocation inefficiency."}
+    ],
+    rule:"Point the intervention at the diagnosed gap — engage the people whose expertise matches the broken process. Named problem beats generic virtue.",
+    trap:"Collaboration! Communication! Trust! When a scenario names a specific process failure, the warm-and-fuzzy options are decoys. Match the fix to the finding."
+  }
+]},
+{
+  id:"gov", color:"#5b8cff", title:"Governance Across Borders",
+  tag:"Compliance guidance and governance design: use what the organization has already validated, and never localize ethics downward.",
+  concepts:[
+  {
+    q:7, title:"Two Anchors of Global Governance", pick:2,
+    scenario:"You are leading a multinational initiative. Headquarters enforces strict governance; two host countries have laxer labor laws and ethical standards. The product owner fears reputational damage if local practices conflict with corporate standards, and you are building the governance plan.",
+    prompt:"Pick the TWO actions to prioritize — explore each to see why it stands or falls.",
+    branches:[
+      {t:"Engage the legal and compliance departments to validate governance against corporate and local requirements.", ok:true,
+       w:"Anchor one: expert validation. Legal and compliance make sure the governance plan satisfies every jurisdiction while preserving corporate integrity — exactly the tension the product owner flagged."},
+      {t:"Authorize local compliance owners to approve corporate-ethics exceptions for their country.", ok:false,
+       w:"Delegating ethics exceptions guarantees inconsistent standards across countries — and hands the reputational risk the product owner fears a formal approval stamp."},
+      {t:"Adjust the governance plan toward local labor practices for cultural alignment and team acceptance.", ok:false,
+       w:"Cultural sensitivity matters, but lowering ethical standards to match lax local practice creates compliance and reputational risk. Ethics never localize downward."},
+      {t:"Establish escalation procedures in the governance plan for conflicts between local practices and corporate standards.", ok:true,
+       w:"Anchor two: a built-in escalation path. Conflicts between local and corporate standards are inevitable — governance must resolve them transparently and consistently, by design."},
+      {t:"Implement local ethics training emphasizing corporate standards and local legal differences.", ok:false,
+       w:"Genuinely helpful — but training is an execution activity, not a primary element of the governance plan. This question is about designing governance, not delivering it."}
+    ],
+    rule:"Global governance stands on two anchors: expert validation (legal + compliance) and designed-in escalation paths. Never delegate ethics downward; training is execution, not governance.",
+    trap:"The training option is the sophisticated decoy — a good idea at the wrong altitude. Governance-plan questions want plan elements, not delivery activities."
+  },
+  {
+    q:20, title:"The Guidance Already Exists",
+    scenario:"During a design workshop for a new industrial robot, engineers raise concerns about which safety and environmental protocols must guide its operating procedures. The project is in design phase, under strict regulatory requirements.",
+    prompt:"What should the project manager do?",
+    branches:[
+      {t:"Hire a specialized safety-compliance engineer to join the design team.", ok:false,
+       w:"Maybe later. Hiring is slow, costs money, and is not the first step when authoritative documentation already exists in-house."},
+      {t:"Provide the team with the organizational process assets and the project charter to guide compliance decisions.", ok:true,
+       w:"The OPAs and charter already contain the validated policies, standards, and requirements the engineers are asking about. Handing them over aligns the team with organizational and project objectives — without stalling design."},
+      {t:"Review lessons learned from similar past projects for compliance approaches.", ok:false,
+       w:"Valuable for continuous improvement, but raw lessons never substitute for existing authoritative compliance resources."},
+      {t:"Conduct a benchmark study with similar facilities to capture their compliance constraints.", ok:false,
+       w:"Time-consuming, and likely unnecessary when the organization's process assets already provide the required guidance. Do not commission research to rediscover what you already own."}
+    ],
+    rule:"When authoritative compliance guidance already exists — OPAs, the charter — hand it to the team first. Hiring, benchmarking, and lesson-mining are later (and often unnecessary) steps.",
+    trap:"Echo of Theme 1: the organization's validated assets outrank every external or informal source. If OPAs plausibly contain the answer, they are the answer."
+  }
+]}
+];
+
+/* ================= STATE ================= */
+const LS = "be-deck-v1";
+let state = load();
+function load(){ try{ return JSON.parse(localStorage.getItem(LS)) || {done:{}} }catch(e){ return {done:{}} } }
+function save(){ try{ localStorage.setItem(LS, JSON.stringify(state)) }catch(e){} }
+const cid = (ti,ci)=>`${ti}-${ci}`;
+const isDone = (ti,ci)=>!!state.done[cid(ti,ci)];
+const themeDone = ti=>THEMES[ti].concepts.filter((_,ci)=>isDone(ti,ci)).length;
+const totalDone = ()=>THEMES.reduce((s,_,ti)=>s+themeDone(ti),0);
+const TOTAL = THEMES.reduce((s,t)=>s+t.concepts.length,0);
+
+/* per-session branch exploration (not persisted) */
+let session = {};
+
+/* ================= ROUTER ================= */
+const app = document.getElementById("app");
+window.addEventListener("hashchange", render);
+function go(h){ location.hash = h }
+function route(){
+  const h = location.hash.replace(/^#\/?/,"");
+  if(!h) return {v:"cover"};
+  if(h==="hub") return {v:"hub"};
+  if(h==="sheet") return {v:"sheet"};
+  let m;
+  if(m = h.match(/^t\/(\d+)$/)) return {v:"tintro", ti:+m[1]};
+  if(m = h.match(/^c\/(\d+)\/(\d+)$/)) return {v:"concept", ti:+m[1], ci:+m[2]};
+  return {v:"cover"};
+}
+
+/* ================= HELPERS ================= */
+const esc = s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+function ring(pct, size=44){
+  const r = 18, c = 2*Math.PI*r;
+  return `<span class="ring"><svg viewBox="0 0 44 44" aria-hidden="true">
+    <circle class="bgc" cx="22" cy="22" r="${r}"></circle>
+    <circle class="fgc" cx="22" cy="22" r="${r}" stroke-dasharray="${c}" stroke-dashoffset="${c*(1-pct)}"></circle>
+  </svg></span>`;
+}
+function topbar(crumb, ac, pct){
+  return `<div class="topbar" style="--ac:${ac}">
+    <button class="iconbtn" data-go="hub">◈ Hub</button>
+    <span class="crumb">${crumb}</span>
+    <span class="progress-rail" title="${totalDone()}/${TOTAL} concepts mastered"><i style="width:${(pct*100).toFixed(1)}%"></i></span>
+    <button class="iconbtn" data-go="sheet">Cheat sheet</button>
+  </div>`;
+}
+
+/* ================= VIEWS ================= */
+function vCover(){
+  const done = totalDone();
+  return `<section class="cover">
+    <div class="cover-grid"></div>
+    <span class="kicker rise" style="animation-delay:.05s">PMP · Business Environment · Review Deck</span>
+    <h1 class="rise" style="animation-delay:.15s">26 misses.<br><span class="neon">7 decision patterns.</span></h1>
+    <p class="lede rise" style="animation-delay:.3s">Every question you missed follows a pattern the exam reuses. This deck rebuilds each one as an explorable scenario: walk the wrong branches, watch the consequences, and lock in the decision rule before July&nbsp;9.</p>
+    <div class="cover-stats rise" style="animation-delay:.42s">
+      <div><b>26</b><span>concepts</span></div>
+      <div><b>7</b><span>themes</span></div>
+      <div><b>${done}<span style="font-size:1rem;color:var(--dim)">/${TOTAL}</span></b><span>mastered</span></div>
+    </div>
+    <button class="cta rise" style="animation-delay:.55s" data-go="hub">${done>0?"Continue":"Enter the deck"} <span class="key">↵</span></button>
+    ${done>0?`<p class="resume rise" style="animation-delay:.65s">Progress is saved in this browser — <b>${done} of ${TOTAL}</b> concepts mastered so far.</p>`:""}
+  </section>`;
+}
+
+function vHub(){
+  const done = totalDone();
+  const cards = THEMES.map((t,ti)=>{
+    const d = themeDone(ti), n = t.concepts.length, full = d===n;
+    return `<button class="tcard rise ${full?"done":""}" style="--ac:${t.color};animation-delay:${.06*ti}s" data-go="t/${ti}">
+      <span class="tno">THEME ${String(ti+1).padStart(2,"0")}${full?` <span class="chip">Mastered</span>`:""}</span>
+      <h3>${esc(t.title)}</h3>
+      <p>${esc(t.tag)}</p>
+      <span class="tfoot">${d}/${n} concepts ${ring(d/n)}</span>
+    </button>`;
+  }).join("");
+  return `${topbar(`<b>${done}/${TOTAL}</b> mastered`, "#35e0ff", done/TOTAL)}
+  <section>
+    <div class="hub-head">
+      <div>
+        <span class="eyebrow">Mission control</span>
+        <h2>Seven patterns behind every miss</h2>
+      </div>
+      <div class="overall"><span class="num">${Math.round(done/TOTAL*100)}%</span><br><span class="lbl">complete</span></div>
+    </div>
+    <p class="hub-sub">Themes are ordered as a study path, but every node is open — jump anywhere. A theme is mastered when you've found the exam's path through each of its scenarios.</p>
+    <div class="hub-grid">${cards}</div>
+    <button class="sheet-link" data-go="sheet"><span>EXAM-DAY CHEAT SHEET — all ${TOTAL} decision rules on one printable page</span><span class="arr">→</span></button>
+  </section>`;
+}
+
+function vTintro(ti){
+  const t = THEMES[ti];
+  const items = t.concepts.map((c,ci)=>{
+    const d = isDone(ti,ci);
+    return `<li class="rise" style="animation-delay:${.08+.05*ci}s"><button data-go="c/${ti}/${ci}">
+      <span class="cno">${String(ci+1).padStart(2,"0")}</span>
+      <span class="cname">${esc(c.title)}</span>
+      <span class="cstate ${d?"ok":""}">${d?"● mastered":"○ open"}</span>
+    </button></li>`;
+  }).join("");
+  return `${topbar(`Theme ${ti+1} — <b>${esc(t.title)}</b>`, t.color, totalDone()/TOTAL)}
+  <section class="tintro" style="--ac:${t.color}">
+    <span class="tno rise">THEME ${String(ti+1).padStart(2,"0")} · ${t.concepts.length} CONCEPTS</span>
+    <h2 class="rise" style="animation-delay:.08s; color:${t.color}; text-shadow:0 0 28px color-mix(in srgb, ${t.color} 40%, transparent)">${esc(t.title)}</h2>
+    <p class="tag rise" style="animation-delay:.16s">${esc(t.tag)}</p>
+    <ol>${items}</ol>
+    <button class="navbtn primary rise" style="--ac:${t.color};animation-delay:.3s" data-go="c/${ti}/0">Start theme →</button>
+  </section>`;
+}
+
+function vConcept(ti,ci){
+  const t = THEMES[ti], c = t.concepts[ci];
+  const key = cid(ti,ci);
+  const sess = session[key] || (session[key] = {opened:new Set()});
+  const need = c.pick || 1;
+  const correctIdx = c.branches.map((b,i)=>b.ok?i:-1).filter(i=>i>=0);
+  const foundAll = correctIdx.every(i=>sess.opened.has(i)) || isDone(ti,ci);
+  const solved = isDone(ti,ci);
+
+  const branches = c.branches.map((b,i)=>{
+    const opened = sess.opened.has(i) || (solved && b.ok);
+    const cls = opened ? (b.ok?"open right":"open wrong") : "";
+    return `<div class="branch ${cls}" data-b="${i}">
+      <button data-branch="${i}" ${opened?"disabled":""} style="cursor:${opened?"default":"pointer"}">
+        <span class="bkey">${String.fromCharCode(65+i)}</span>
+        <span class="btext">${esc(b.t)}</span>
+      </button>
+      <div class="verdict">
+        <span class="vtag">${b.ok?"THE EXAM'S PATH":"THE CONSEQUENCE"}</span>
+        <p>${esc(b.w)}</p>
+      </div>
+    </div>`;
+  }).join("");
+
+  const dots = t.concepts.map((_,i)=>`<i class="${isDone(ti,i)?"on":""} ${i===ci?"cur":""}"></i>`).join("");
+  const lastInTheme = ci===t.concepts.length-1;
+  const nextGo = lastInTheme ? (ti<THEMES.length-1?`t/${ti+1}`:"sheet") : `c/${ti}/${ci+1}`;
+  const nextLabel = lastInTheme ? (ti<THEMES.length-1?`Theme ${ti+2} →`:"Cheat sheet →") : "Next →";
+
+  return `${topbar(`Theme ${ti+1} · ${esc(t.title)} — <b>${ci+1}/${t.concepts.length}</b>`, t.color, totalDone()/TOTAL)}
+  <section class="concept" style="--ac:${t.color}">
+    <div class="chead rise">
+      <span class="eyebrow" style="color:${t.color}">Concept ${String(ci+1).padStart(2,"0")} / ${String(t.concepts.length).padStart(2,"0")}</span>
+      <h2>${esc(c.title)}</h2>
+    </div>
+    <div class="scenario rise" style="animation-delay:.1s">
+      <span class="eyebrow">Scenario — inspired by miss #${c.q}</span>
+      <p>${esc(c.scenario)}</p>
+    </div>
+    <p class="prompt rise" style="animation-delay:.18s">${esc(c.prompt)} ${need>1?`<b>· find both</b>`:""} <span style="color:var(--dim)">· every branch is explorable</span></p>
+    <div class="branches rise" style="animation-delay:.24s">${branches}</div>
+    <div id="reveal">${foundAll?revealHtml(c):""}</div>
+    ${foundAll && solved && themeDone(ti)===t.concepts.length && lastInTheme ? tdoneHtml(t) : ""}
+    <div class="cnav">
+      <button class="navbtn" data-go="${ci>0?`c/${ti}/${ci-1}`:`t/${ti}`}">← Back</button>
+      <span class="spacer"></span>
+      <span class="dots">${dots}</span>
+      <span class="spacer"></span>
+      <button class="navbtn ${foundAll?"primary pulse":""}" data-go="${nextGo}">${nextLabel}</button>
+    </div>
+  </section>`;
+}
+
+function revealHtml(c){
+  return `<div class="reveal">
+    <div class="rulecard rise"><span class="eyebrow">◆ Decision rule</span><p>${esc(c.rule)}</p></div>
+    <div class="trapcard rise" style="animation-delay:.12s"><span class="eyebrow">⚠ The trap</span><p>${esc(c.trap)}</p></div>
+  </div>
+  <p class="explore-hint rise" style="animation-delay:.2s">Rule locked in. Tap the remaining branches to see why the exam rejects them, or move on.</p>`;
+}
+function tdoneHtml(t){
+  return `<div class="tdone" style="--ac:${t.color}"><span class="mark">◈</span><p><b>${esc(t.title)} mastered.</b> All ${t.concepts.length} decision rules from this theme are now on your cheat sheet.</p></div>`;
+}
+
+function vSheet(){
+  const groups = THEMES.map((t,ti)=>`
+    <div class="sheet-theme" style="--ac:${t.color}">
+      <h3><span class="tno">THEME ${String(ti+1).padStart(2,"0")}</span> ${esc(t.title)}</h3>
+      <ul>${t.concepts.map(c=>`<li><span><b>${esc(c.title)}.</b> ${esc(c.rule)}</span></li>`).join("")}</ul>
+    </div>`).join("");
+  return `${topbar(`<b>Cheat sheet</b> — ${TOTAL} rules`, "#35e0ff", totalDone()/TOTAL)}
+  <section class="sheet">
+    <span class="eyebrow rise">Exam day · July 9 · Business Environment</span>
+    <h2 class="rise" style="animation-delay:.06s">Every decision rule, one page</h2>
+    <p class="sub rise" style="animation-delay:.12s">The distilled rule from each of the 26 misses, grouped by pattern. Print it, or skim it one last time before you walk in.</p>
+    <div class="sheet-actions rise" style="animation-delay:.18s">
+      <button class="navbtn primary" style="--ac:#35e0ff" onclick="window.print()">Print / save as PDF</button>
+      <button class="navbtn" data-go="hub">← Back to hub</button>
+    </div>
+    ${groups}
+  </section>`;
+}
+
+/* ================= RENDER & EVENTS ================= */
+function render(){
+  const r = route();
+  document.documentElement.scrollTop = 0;
+  if(r.v==="cover") app.innerHTML = vCover();
+  else if(r.v==="hub") app.innerHTML = vHub();
+  else if(r.v==="tintro") app.innerHTML = vTintro(r.ti);
+  else if(r.v==="concept") app.innerHTML = vConcept(r.ti,r.ci);
+  else if(r.v==="sheet") app.innerHTML = vSheet();
+}
+
+app.addEventListener("click", e=>{
+  const goBtn = e.target.closest("[data-go]");
+  if(goBtn){ go(goBtn.dataset.go); return; }
+  const bBtn = e.target.closest("[data-branch]");
+  if(bBtn && !bBtn.disabled){
+    const r = route(); if(r.v!=="concept") return;
+    const t = THEMES[r.ti], c = t.concepts[r.ci];
+    const i = +bBtn.dataset.branch;
+    const key = cid(r.ti,r.ci);
+    const sess = session[key] || (session[key]={opened:new Set()});
+    sess.opened.add(i);
+    const wrap = bBtn.closest(".branch");
+    wrap.classList.add("open", c.branches[i].ok?"right":"wrong");
+    if(!c.branches[i].ok) { wrap.classList.add("just"); setTimeout(()=>wrap.classList.remove("just"),500); }
+    bBtn.disabled = true; bBtn.style.cursor = "default";
+    const correctIdx = c.branches.map((b,j)=>b.ok?j:-1).filter(j=>j>=0);
+    const foundAll = correctIdx.every(j=>sess.opened.has(j));
+    if(foundAll && !isDone(r.ti,r.ci)){
+      state.done[cid(r.ti,r.ci)] = true; save();
+      document.getElementById("reveal").innerHTML = revealHtml(c);
+      const rail = document.querySelector(".progress-rail i");
+      if(rail) rail.style.width = (totalDone()/TOTAL*100)+"%";
+      const crumbDone = document.querySelector(".topbar .crumb b");
+      const nextBtn = document.querySelector(".cnav .navbtn:last-child");
+      if(nextBtn) nextBtn.classList.add("primary","pulse");
+      if(themeDone(r.ti)===t.concepts.length && r.ci===t.concepts.length-1){
+        document.getElementById("reveal").insertAdjacentHTML("afterend", tdoneHtml(t));
+      }
+      setTimeout(()=>{ const el=document.getElementById("reveal"); if(el) el.scrollIntoView({behavior:"smooth", block:"nearest"}); }, 120);
+    }
+  }
+});
+
+document.addEventListener("keydown", e=>{
+  if(e.metaKey||e.ctrlKey||e.altKey) return;
+  const r = route();
+  if(e.key==="Enter" && r.v==="cover"){ go("hub"); return; }
+  if(e.key==="Escape"){ go(r.v==="concept"?`t/${r.ti}`:"hub"); return; }
+  if(r.v==="concept"){
+    if(e.key==="ArrowRight"){
+      const t=THEMES[r.ti];
+      go(r.ci<t.concepts.length-1?`c/${r.ti}/${r.ci+1}`:(r.ti<THEMES.length-1?`t/${r.ti+1}`:"sheet"));
+    }
+    if(e.key==="ArrowLeft"){ go(r.ci>0?`c/${r.ti}/${r.ci-1}`:`t/${r.ti}`); }
+    const n = "abcde".indexOf(e.key.toLowerCase());
+    if(n>=0){ const btn=document.querySelector(`[data-branch="${n}"]`); if(btn&&!btn.disabled) btn.click(); }
+  }
+  if(r.v==="tintro"){
+    if(e.key==="ArrowRight"||e.key==="Enter") go(`c/${r.ti}/0`);
+  }
+});
+
+render();
+</script>
+</body>
+</html>
